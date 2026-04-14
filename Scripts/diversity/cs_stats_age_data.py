@@ -49,5 +49,3 @@ cols = ["Release number",
 df_age.drop(columns=cols)
 
 df_age.insert(0, 'id', [uuid.uuid4() for i in range(len(df_age))])
-
-# %%
