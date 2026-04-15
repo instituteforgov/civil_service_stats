@@ -38,18 +38,41 @@ engine = dbo.connect_sql_db(
 )
 
 # %%
-# Read and edit data: drop calculated cols, add UUIDs, normalise col titles to snake_case
+# Read and edit data: drop calculated cols, add UUIDs, edit col titles
 
 df_age = pd.read_excel(FILE_PATH, sheet_name="Data.Collated")
 
 cols = ["Release number",
         "Departmental group",
         "Organisation type",
-        "Managed", "Census",
+        "Managed",
+        "Census",
         "Ministerial department/executive agency/selected non-ministerial department",
         "Latest organisation",
         "Latest departmental group"]
 
-df_age.drop(columns=cols)
+df_age = df_age.drop(columns=cols)
 
 df_age.insert(0, 'id', [uuid.uuid4() for i in range(len(df_age))])
+
+df_age.columns = df_age.columns.str.strip().str.lower()
+
+# %%
+# Write to d/b
+
+df_age.to_sql(
+    name="civil_service_statistics_age",
+    con=engine,
+    schema="civil_service",
+    if_exists="replace",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "year": SMALLINT,
+        "organisation": NVARCHAR(100),
+        "age": NVARCHAR(20),
+        "headcount": INT
+    }
+)
