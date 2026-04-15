@@ -16,6 +16,10 @@ import ds_utils.database_operations as dbo
 import pandas as pd
 import uuid
 
+from sqlalchemy import NVARCHAR, SMALLINT, INT
+from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
+
+
 # %%
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - age/Age by Department.xlsx"
 
