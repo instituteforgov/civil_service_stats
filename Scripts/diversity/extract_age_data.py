@@ -18,6 +18,7 @@ import uuid
 
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
+from utils import resolve_org_id
 
 
 # %%
