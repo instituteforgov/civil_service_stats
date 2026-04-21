@@ -38,9 +38,12 @@ engine = dbo.connect_sql_db(
 )
 
 # %%
-# Read and edit data: drop calculated cols, add UUIDs, edit col titles
+# Read in data
 
 df_age = pd.read_excel(FILE_PATH, sheet_name="Data.Collated")
+
+# %%
+# Edit data
 
 cols = ["Release number",
         "Departmental group",
@@ -55,7 +58,12 @@ df_age = df_age.drop(columns=cols)
 
 df_age.insert(0, 'id', [uuid.uuid4() for i in range(len(df_age))])
 
-df_age.columns = df_age.columns.str.strip().str.lower()
+df_age.columns = df_age.columns.str.strip().str.lower().str.replace(r"\s+", "_", regex=True)
+
+df_age = df_age.rename(columns={"organisation": "organisation_name"})
+
+df_age["organisation_name"] = df_age["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
+
 
 # %%
 # Write to d/b
