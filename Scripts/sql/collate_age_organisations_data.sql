@@ -20,7 +20,7 @@
 
 -- NB: 'Latest IfG departmental group' is renamed 'Latest departmental group', so that existing PivotTable connections to collated datasets don't break
 
-WITH scstatsage AS (
+WITH cs_stats_age AS (
     SELECT 
         *, 
         year * 4 + 1 survey_period
@@ -42,9 +42,27 @@ o_vicd_vodg AS (
         isnull(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
         isnull(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
     FROM civil_service.organisation o 
-        LEFT JOIN civil_Service.vw_ifg_core_departments vicd ON
+        LEFT JOIN civil_service.vw_ifg_core_departments vicd ON
             o.id = vicd.organisation_id
-        LEFT JOIN civil_Service.vw_organisation_departmental_group vodg ON
+        LEFT JOIN civil_service.vw_organisation_departmental_group vodg ON
             o.id = vodg.organisation_id
 )
+
+SELECT 
+    cs_stats_age.id,
+    cs_stats_age.year,
+    cs_stats_age.organisation_name [Organisation],
+    o_vicd_vodg.type [Organisation type],
+    o_vicd_vodg.ifg_departmental_group_short_name [Departmental group],
+    CASE
+        WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
+        ELSE 'N'
+    END [IfG core department]
+
+
+FROM  cs_stats_age    
+    LEFT JOIN o_vicd_vodg ON 
+        cs_stats_age.id = o_vicd_vodg.id 
+        AND
+        (cs_stats_age.survey_period BETWEEN o_vicd_vodg.start_period AND o_vicd_vodg.end_period)
 ;
