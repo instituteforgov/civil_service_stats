@@ -80,9 +80,9 @@ df_orgs = pd.read_sql(
 )
 
 df_age.insert(
-    df_age.columns.get_loc("year"),
+    df_age.columns.get_loc("organisation_name"),
     "organisation_id",
-    resolve_org_id(df_age, df_orgs, quarter_col=4)
+    resolve_org_id(df_age, df_orgs, quarter_col="quarter")
 )
 
 # %%
