@@ -33,6 +33,7 @@ o_vicd_vodg AS (
 
 SELECT 
     cs_stats_age.id,
+    cs_stats_age.quarter, ['Quarter'],
     cs_stats_age.year [Year],
     cs_stats_age.headcount [Headcount],
     cs_stats_age.age [Age],
