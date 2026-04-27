@@ -17,7 +17,7 @@ import os
 
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from Scripts.utils import resolve_org_id
+from utils import resolve_org_id
 
 # %%
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - age/Age by Department.xlsx"
