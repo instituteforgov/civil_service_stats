@@ -1,17 +1,6 @@
--- Replicates collated data calculations for the Civil Service Statistics age data working file
-
--- NB: This turns all dates into 'periods', to facilitate temporal joins. These are defined as year * 4 + quarter, so e.g. 2020 Q4 becomes 2020 * 4 + 4 = 8084, 
--- -- with nulls set to 0 for start_period and the maximum integer that can be held in a SQL int column for end_period
-
--- NB: survey_period in the CS Stats age data is set to year * 4 + 1, because all such data is from quarter 1 of each year
--- NB: Temporal joins use _between_, which includes both endpoints, because start/end year/quarters in civil_service.organisation are inclusive and non-overlapping.
-----  I.e. if an organisation ends in period N, it's successor starts in period N + 1
-
--- NB: Join between `civil_service.organisation` and `civil_service.vw_organisation_departmental_group` needs to be a left join as
----- rganisation aggregations and disaggregations don't feature in `civil_service.vw_organisation_departmental_group`, by design
-
+-- Add back-in IfG-derived organisation attributes to the source data
+-- NB: 'IfG core department' is recoded to 'Y'/'N' to make it more user-friendly
 -- NB: 'Organisation name' is renamed 'Organisation', so that existing PivotTable connections to collated datasets don't break
-
 -- NB: 'Latest IfG departmental group' is renamed 'Latest departmental group', so that existing PivotTable connections to collated datasets don't break
 
 WITH cs_stats_age AS (
