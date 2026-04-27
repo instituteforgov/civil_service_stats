@@ -17,7 +17,7 @@ import os
 
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from utils import resolve_org_id
+from Scripts.utils import resolve_org_id
 
 # %%
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - age/Age by Department.xlsx"
@@ -65,7 +65,7 @@ df_age["organisation_name"] = df_age["organisation_name"].str.replace(r"\s*-\s*\
 
 # %%
 # Insert ids for orgs from d/b
-# Match organisation names and quarter/year pairs with civil_servoce.organisation
+# Match organisation names and quarter/year pairs with civil_service.organisation
 
 df_orgs = pd.read_sql(
     """select
