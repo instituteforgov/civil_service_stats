@@ -5,10 +5,10 @@ releases.
 
 ## Project structure
 
-Below is a generalised view of the structure of the repository. `dataset` below is an umbrella for each of the Civil Service Statistics datasets, which are: `age`, `disability_status`, `ethnicity`, `faith`, `sex`, `sexual_orientation`, `grade`, `leaving_cause`, `location`, `pay` and `professions_functions`.
+Below is a generalised view of the structure of the repository. `dataset` below is an umbrella for each of the CSS datasets, which are: `age`, `disability_status`, `ethnicity`, `faith`, `sex`, `sexual_orientation`, `grade`, `leaving_cause`, `location`, `pay` and `professions_functions`.
 
 ```
-├── Scripts
+├── Scripts/
 |   ├── dataset/
 |   |   ├── python/
 |   |   |   ├── extract_dataset_data.py
