@@ -55,3 +55,32 @@ def resolve_org_id(
     unique_idx = counts[counts == 1].index
     result = merged[merged["_orig_idx"].isin(unique_idx)].set_index("_orig_idx")["id"]
     return result.reindex(df.index)
+
+# %%
+
+
+def add_iteration_suffix(row: pd.Series, col: str) -> str:
+    """
+    Add ' - YYYY iteration' to "Organisation" values where appropriate, i.e. to
+    differentiate between the two versions of DCMS and MHCLG which have each
+    existed, then gone out of existence, then come back into existence in their history
+
+    Parameters:
+        row (pd.Series): A row of the DataFrame containing the specified column and a year column
+        col (str): The specified column to search for organisation names
+
+    Returns:
+        str: The modified "Organisation" with relevant iteration suffix (if applicable), else the orginal value
+    """
+    if row[col] == "Department for Culture, Media and Sport":
+        if row["Year"] <= 2017:
+            return "Department for Culture, Media and Sport - 2017 iteration"
+        elif row["Year"] >= 2023:
+            return "Department for Culture, Media and Sport - 2023 iteration"
+    elif row[col] == "Ministry of Housing, Communities & Local Government":
+        if row["Year"] <= 2021 and row["Year"] >= 2018:
+            return "Ministry of Housing, Communities & Local Government - 2018 iteration"
+        elif row["Year"] >= 2024:
+            return "Ministry of Housing, Communities & Local Government - 2024 iteration"
+    else:
+        return row[col]
