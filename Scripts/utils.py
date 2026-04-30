@@ -77,10 +77,14 @@ def add_iteration_suffix(row: pd.Series, col: str) -> str:
             return "Department for Culture, Media and Sport - 2017 iteration"
         elif row["Year"] >= 2023:
             return "Department for Culture, Media and Sport - 2023 iteration"
+        else:
+            return row[col]
     elif row[col] == "Ministry of Housing, Communities & Local Government":
         if row["Year"] <= 2021 and row["Year"] >= 2018:
             return "Ministry of Housing, Communities & Local Government - 2018 iteration"
         elif row["Year"] >= 2024:
             return "Ministry of Housing, Communities & Local Government - 2024 iteration"
+        else:
+            return row[col]
     else:
         return row[col]
