@@ -67,6 +67,13 @@ iteration_suffixes = {
 
 df_sql["Latest organisation"] = df_sql["Latest organisation"].map(lambda x: iteration_suffixes.get(x, x))
 
-
-
 # %%
+# Check columns match
+
+excel_only = [col for col in df_excel.columns if col not in df_sql.columns]
+sql_only = [col for col in df_sql.columns if col  not in df_excel.columns]
+in_both = [col for col in df_excel.columns if col in df_sql.columns]
+
+print(f"Columns in Excel frame only: {excel_only}")
+print(f"Columns in SQL frame only: {sql_only}")
+print(f"Columns in both: {in_both}")
