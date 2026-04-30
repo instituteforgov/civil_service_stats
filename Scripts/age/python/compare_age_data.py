@@ -47,16 +47,26 @@ with open(SQL_PATH, encoding="utf-8") as f:
 df_sql = pd.read_sql(sql, con=engine)
 
 # %%
-
-df_excel.columns
-
-# %%
 # Edit data
 
+# Drop columns we don't use
 df_excel = df_excel.drop(columns=[
     "Managed",
     "Census",
     "Ministerial department/executive agency/selected non-ministerial department"
 ])
 
+# Add YYYY iteration suffixes to Organisation column
 df_sql["Organisation"] = df_sql.apply(add_iteration_suffix, col="Organisation", axis=1)
+
+# Add YYYY iteration suffixes to Latest organisation column
+iteration_suffixes = {
+    "Department for Culture, Media and Sport": "Department for Culture, Media and Sport - 2023 iteration",
+    "Ministry of Housing, Communities & Local Government": "Ministry of Housing, Communities & Local Government - 2024 iteration",
+}
+
+df_sql["Latest organisation"] = df_sql["Latest organisation"].map(lambda x: iteration_suffixes.get(x, x))
+
+
+
+# %%
