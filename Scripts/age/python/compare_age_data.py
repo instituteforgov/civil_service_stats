@@ -70,10 +70,55 @@ df_sql["Latest organisation"] = df_sql["Latest organisation"].map(lambda x: iter
 # %%
 # Check columns match
 
-excel_only = [col for col in df_excel.columns if col not in df_sql.columns]
-sql_only = [col for col in df_sql.columns if col  not in df_excel.columns]
-in_both = [col for col in df_excel.columns if col in df_sql.columns]
+columns_excel_only = [col for col in df_excel.columns if col not in df_sql.columns]
+columns_sql_only = [col for col in df_sql.columns if col  not in df_excel.columns]
+columns_both = [col for col in df_excel.columns if col in df_sql.columns]
 
-print(f"Columns in Excel frame only: {excel_only}")
-print(f"Columns in SQL frame only: {sql_only}")
-print(f"Columns in both: {in_both}")
+print(f"Columns in Excel frame only: {columns_excel_only}")
+print(f"Columns in SQL frame only: {columns_sql_only}")
+print(f"Columns in both: {columns_both}")
+
+# %%
+# Check number of rows match
+
+assert len(df_sql) == len(df_excel), ("Row counts in SQL and Excel frames don't match!")
+
+# %%
+# Compare key values - those values which uniquely identify rows 
+
+keys = [
+   "Quarter", "Year", "Headcount", "Age", "Organisation"
+]
+
+df_merged = df_sql.merge(df_excel, on=keys, how='outer', suffixes=("_sql", "_excel"), indicator=True)
+
+rows_excel_only = df_merged[df_merged["_merge"] == "right_only"]
+rows_sql_only = df_merged[df_merged["_merge"] == "left_only"]
+rows_both = df_merged[df_merged["_merge"] == "both"]
+
+print(f"Rows in Excel frame only: {rows_excel_only}")
+print(f"Rows in SQL frame only: {rows_sql_only}")
+print(f"Rows in both: {rows_both}")
+
+assert len(df_sql) == len(df_merged), f"Row counts in SQL/Excel and merged frames don't match!"
+
+# %%
+# Compare values in the matched rows (i.e. check that, for example, the same organisations are appearing where they should be)
+
+values = [col for col in columns_both if col not in keys] 
+
+for col in values:
+    sql_col = f"{col}_sql"
+    excel_col = f"{col}_excel"
+
+    if sql_col in rows_both and excel_col in rows_both:
+        sql_series = rows_both[sql_col]
+        excel_series = rows_both[excel_col]
+        mask = (
+            (sql_series == excel_series) 
+            | (rows_both[sql_col].isna() & rows_both[excel_col].isna())
+        )
+
+
+
+# %%
