@@ -16,6 +16,7 @@ import os
 import ds_utils.database_operations as dbo
 import pandas as pd
 from utils import add_iteration_suffix
+from IPython.display import display
 
 # %%
 
@@ -103,10 +104,11 @@ print(f"Rows in both: {rows_both}")
 assert len(df_sql) == len(df_merged), f"Row counts in SQL/Excel and merged frames don't match!"
 
 # %%
-# Compare values in the matched rows (i.e. check that, for example, the same organisations are appearing where they should be)
+# Compare values in the matched rows (i.e. check that, for example, the same organisations are appearing where they should in both DataFrames)
 
 values = [col for col in columns_both if col not in keys] 
 
+mismatch_mask = {}
 for col in values:
     sql_col = f"{col}_sql"
     excel_col = f"{col}_excel"
@@ -114,11 +116,28 @@ for col in values:
     if sql_col in rows_both and excel_col in rows_both:
         sql_series = rows_both[sql_col]
         excel_series = rows_both[excel_col]
-        mask = (
+        match_mask = (
             (sql_series == excel_series) 
             | (rows_both[sql_col].isna() & rows_both[excel_col].isna())
         )
 
+        if (~match_mask).any():
+            mismatch_mask[col] = ~match_mask
 
 
+if mismatch_mask:
+    display({col: int(mask.sum()) for col, mask in mismatch_mask.items()})
+    for col, mask in mismatch_mask.items():
+        sql_col = f"{col}_sql"
+        excel_col = f"{col}_excel"
+        preview = (
+            rows_both.loc[mask, ["Year", "Organisation", sql_col, excel_col]]
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
+        print(f"Mismatches in '{col}':")
+        display(preview)
+else:
+    print("No value mismatches in matched rows")
+    
 # %%
