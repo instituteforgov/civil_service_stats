@@ -98,8 +98,9 @@ df_age.to_sql(
     dtype={
         "id": UNIQUEIDENTIFIER,
         "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
         "year": SMALLINT,
-        "organisation": NVARCHAR(100),
+        "organisation_name": NVARCHAR(100),
         "age": NVARCHAR(20),
         "headcount": INT
     }
