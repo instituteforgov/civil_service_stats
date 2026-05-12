@@ -39,7 +39,7 @@ engine = dbo.connect_sql_db(
 # %%
 # Read in data
 
-df_age = pd.read_excel(FILE_PATH, sheet_name="Data.Collated")
+df_age = pd.read_excel(FILE_PATH, sheet_name="Data.CollatedDepts")
 
 # %%
 # Edit data
