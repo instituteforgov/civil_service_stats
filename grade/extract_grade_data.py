@@ -17,11 +17,11 @@ import uuid
 import os
 
 from sqlalchemy import NVARCHAR, SMALLINT, INT
-from sqlalchemy.dialects import UNIQUEIDENTIFIER, TINYINT
-from utils import resolve_org_id
+from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
+from civil_service_stats.utils import resolve_org_id
 
 # %%
-FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - grade/Grade by departmentCivil Service Age Working File.xlsx"
+FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - grade/Grade by department.xlsx"
 
 # %%
 # Connect to d/b
@@ -48,7 +48,7 @@ df_grade = pd.read_excel(FILE_PATH, sheet_name="Data.Collated")
 # Drop calculated columns
 df_grade = df_grade.drop(columns=[
     "Release number",
-    "Departmental group,"
+    "Departmental group",
     "Organisation type",
     "Managed",
     "Census",
@@ -61,8 +61,8 @@ df_grade = df_grade.drop(columns=[
 df_grade.insert(0, 'id', [uuid.uuid4() for i in range(len(df_grade))])
 
 # Edit column names
-df_grade.columns.str.strip().str.lower()
-df_grade = df_grade.rename(columns={"organisation": "organisation_name"})
+df_grade.columns = df_grade.columns.str.strip().str.lower()
+df_grade = df_grade.rename(columns={"organisation": "organisation_name", "fte": "headcount_fte"})
 df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
 
 # %%
@@ -87,3 +87,22 @@ df_grade.insert(
 )
 
 # %%
+# Write to database
+
+df_grade.to_sql(
+    name="civil_service_statistics_grade",
+    con=engine,
+    schema="civil_service",
+    if_exists="replace",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "organisation_name": NVARCHAR(100),
+        "age": NVARCHAR(20),
+        "headcount_fte": INT
+    }
+)

@@ -15,7 +15,7 @@ import os
 
 import ds_utils.database_operations as dbo
 import pandas as pd
-from utils import add_iteration_suffix
+from civil_service_stats.utils import add_iteration_suffix
 from IPython.display import display
 
 # %%
