@@ -37,3 +37,32 @@ engine = dbo.connect_sql_db(
     password=os.environ["AZURE_CLIENT_SECRET"],
 )
 
+# %%
+# Read in data
+
+df_grade = pd.read_excel(FILE_PATH, sheet_name="Data.Collated")
+
+# %%
+# Edit data
+
+# Drop calculated columns
+df_grade = df_grade.drop(columns=[
+    "Release number",
+    "Departmental group,"
+    "Organisation type",
+    "Managed",
+    "Census",
+    "Ministerial department/executive agency/selected non-ministerial department",
+    "Latest organisation",
+    "Latest departmental group"
+])
+
+# Add ID column
+df_grade.insert(0, 'id', [uuid.uuid4() for i in range(len(df_grade))])
+
+# Edit column names
+df_grade.columns.str.strip().str.lower()
+df_grade = df_grade.rename(columns={"organisation": "organisation_name"})
+df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
+
+# %%
