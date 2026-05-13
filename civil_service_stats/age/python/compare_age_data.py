@@ -68,6 +68,12 @@ iteration_suffixes = {
 
 df_sql["Latest organisation"] = df_sql["Latest organisation"].map(lambda x: iteration_suffixes.get(x, x))
 
+# Set latest org to 'Organisation' where it is non-civil service
+df_sql["Latest organisation"] = df_sql.apply(
+    lambda row: row["Organisation"] if row["Latest organisation"] == "Non-civil service" else row["Latest organisation"],
+    axis=1,
+)
+
 # %%
 # Check columns match
 
