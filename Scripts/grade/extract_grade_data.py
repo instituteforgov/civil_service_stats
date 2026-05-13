@@ -66,3 +66,24 @@ df_grade = df_grade.rename(columns={"organisation": "organisation_name"})
 df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
 
 # %%
+# Insert organisation IDs from canonical orgs database
+
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_grade.insert(
+    df_grade.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_grade, df_orgs, quarter_col="quarter")
+)
+
+# %%
