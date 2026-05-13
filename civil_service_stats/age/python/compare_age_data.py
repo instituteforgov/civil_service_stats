@@ -21,7 +21,7 @@ from IPython.display import display
 # %%
 
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - Age/Civil Service Age Working File.xlsx"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/age/sql/compare_age_organisations_data.sql"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/age/sql/compare_age_organisations_data.sql"
 
 # %%
 # Connect to d/b
@@ -145,3 +145,5 @@ if mismatch_mask:
         display(preview)
 else:
     print("No value mismatches in matched rows")
+
+# %%
