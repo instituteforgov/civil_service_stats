@@ -52,20 +52,12 @@ SELECT
     END [IfG core department],
     CASE cs_stats_age.organisation_name
         WHEN 'All employees' THEN 'All employees'
-        ELSE IIF(
-            vol1.latest_organisation_name = 'Indeterminate',
-            vol1.latest_determinate_organisation_name,
-            vol1.latest_organisation_name
-        )
+        ELSE vol1.latest_organisation_name
     END [Latest organisation],
     CASE cs_stats_age.organisation_name
         WHEN 'All employees' THEN 'All employees'
         WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE IIF(
-            vol2.latest_organisation_short_name = 'Indeterminate',
-            vol2.latest_determinate_organisation_short_name,
-            vol2.latest_organisation_short_name
-        )
+        ELSE vol2.latest_organisation_short_name
     END [Latest departmental group]
 FROM cs_stats_age    
     LEFT JOIN o_vicd_vodg ON 
