@@ -38,7 +38,10 @@ SELECT
     cs_stats_age.headcount [Headcount],
     cs_stats_age.age [Age],
     cs_stats_age.organisation_name [Organisation],
-    o_vicd_vodg.type [Organisation type],
+    CASE o_vicd_vodg.type 
+        WHEN 'Reporting total' THEN 'All employees'
+        ELSE o_vicd_vodg.type
+    END [Organisation type],
     CASE cs_stats_age.organisation_name
         WHEN 'All employees' THEN 'All employees'
         WHEN 'Security and Intelligence Services' THEN 'Security services'
@@ -61,7 +64,6 @@ SELECT
             vol2.latest_organisation_short_name
         )
     END [Latest departmental group]
-    
 FROM cs_stats_age    
     LEFT JOIN o_vicd_vodg ON 
         cs_stats_age.organisation_id = o_vicd_vodg.id AND
