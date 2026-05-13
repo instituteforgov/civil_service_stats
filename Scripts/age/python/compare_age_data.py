@@ -20,7 +20,7 @@ from IPython.display import display
 
 # %%
 
-EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - Age/Age by Department.xlsx"
+EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - Age/Civil Service Age Working File.xlsx"
 SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/age/sql/compare_age_organisations_data.sql"
 
 # %%
@@ -40,7 +40,7 @@ engine = dbo.connect_sql_db(
 # %%
 # Read in data
 
-df_excel = pd.read_excel(EXCEL_PATH, sheet_name="Data.Collated")
+df_excel = pd.read_excel(EXCEL_PATH, sheet_name="Data.CollatedDepts")
 
 with open(SQL_PATH, encoding="utf-8") as f:
     sql = f.read()
@@ -72,7 +72,7 @@ df_sql["Latest organisation"] = df_sql["Latest organisation"].map(lambda x: iter
 # Check columns match
 
 columns_excel_only = [col for col in df_excel.columns if col not in df_sql.columns]
-columns_sql_only = [col for col in df_sql.columns if col  not in df_excel.columns]
+columns_sql_only = [col for col in df_sql.columns if col not in df_excel.columns]
 columns_both = [col for col in df_excel.columns if col in df_sql.columns]
 
 print(f"Columns in Excel frame only: {columns_excel_only}")
@@ -85,7 +85,7 @@ print(f"Columns in both: {columns_both}")
 assert len(df_sql) == len(df_excel), ("Row counts in SQL and Excel frames don't match!")
 
 # %%
-# Compare key values - those values which uniquely identify rows 
+# Compare key values - those values which uniquely identify rows
 
 keys = [
    "Quarter", "Year", "Headcount", "Age", "Organisation"
@@ -97,16 +97,16 @@ rows_excel_only = df_merged[df_merged["_merge"] == "right_only"]
 rows_sql_only = df_merged[df_merged["_merge"] == "left_only"]
 rows_both = df_merged[df_merged["_merge"] == "both"]
 
-print(f"Rows in Excel frame only: {rows_excel_only}")
-print(f"Rows in SQL frame only: {rows_sql_only}")
-print(f"Rows in both: {rows_both}")
+print(f"Rows in Excel frame only: {len(rows_excel_only)}")
+print(f"Rows in SQL frame only: {len(rows_sql_only)}")
+print(f"Rows in both: {len(rows_both)}")
 
-assert len(df_sql) == len(df_merged), f"Row counts in SQL/Excel and merged frames don't match!"
+assert len(df_sql) == len(df_merged), "Row counts in SQL/Excel and merged frames don't match!"
 
 # %%
 # Compare values in the matched rows (i.e. check that, for example, the same organisations are appearing where they should in both DataFrames)
 
-values = [col for col in columns_both if col not in keys] 
+values = [col for col in columns_both if col not in keys]
 
 mismatch_mask = {}
 for col in values:
@@ -117,7 +117,7 @@ for col in values:
         sql_series = rows_both[sql_col]
         excel_series = rows_both[excel_col]
         match_mask = (
-            (sql_series == excel_series) 
+            (sql_series == excel_series)
             | (rows_both[sql_col].isna() & rows_both[excel_col].isna())
         )
 
@@ -139,5 +139,3 @@ if mismatch_mask:
         display(preview)
 else:
     print("No value mismatches in matched rows")
-    
-# %%
