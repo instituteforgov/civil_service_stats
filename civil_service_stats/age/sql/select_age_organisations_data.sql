@@ -37,14 +37,36 @@ SELECT
     cs_stats_age.headcount [Headcount],
     cs_stats_age.age [Age],
     cs_stats_age.organisation_name [Organisation],
-    o_vicd_vodg.type [Organisation type],
-    o_vicd_vodg.ifg_departmental_group_short_name [Departmental group],
+    CASE o_vicd_vodg.type 
+        WHEN 'Reporting total' THEN 'All employees'
+        ELSE o_vicd_vodg.type
+    END [Organisation type],
+    CASE cs_stats_age.organisation_name
+        WHEN 'All employees' THEN 'All employees'
+        WHEN 'Security and Intelligence Services' THEN 'Security services'
+        ELSE o_vicd_vodg.ifg_departmental_group_short_name 
+    END [Departmental group],
     CASE
         WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
         ELSE 'N'
     END [IfG core department],
-    vol1.latest_organisation_name [Latest organisation],
-    vol2.latest_organisation_short_name [Latest departmental group]
+    CASE cs_stats_age.organisation_name
+        WHEN 'All employees' THEN 'All employees'
+        ELSE IIF(
+            vol1.latest_organisation_name = 'Indeterminate',
+            vol1.latest_determinate_organisation_name,
+            vol1.latest_organisation_name
+        )
+    END [Latest organisation],
+    CASE cs_stats_age.organisation_name
+        WHEN 'All employees' THEN 'All employees'
+        WHEN 'Security and Intelligence Services' THEN 'Security services'
+        ELSE IIF(
+            vol2.latest_organisation_short_name = 'Indeterminate',
+            vol2.latest_determinate_organisation_short_name,
+            vol2.latest_organisation_short_name
+        )
+    END [Latest departmental group]
 FROM cs_stats_age    
     LEFT JOIN o_vicd_vodg ON 
         cs_stats_age.organisation_id = o_vicd_vodg.id AND
