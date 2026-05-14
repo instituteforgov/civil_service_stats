@@ -106,3 +106,5 @@ df_grade.to_sql(
         "headcount_fte": INT
     }
 )
+
+# %%

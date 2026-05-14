@@ -1,0 +1,25 @@
+WITH cs_stats_grade AS (
+    SELECT *, year * 4 + 1 survey_period
+    FROM civil_service.civil_service_statistics_age
+),
+o_vicd_vodg AS (
+    SELECT
+        o.id,
+        vodg.organisation_name,
+        o.type,
+        vicd.is_ifg_core_department,
+        vodg.ifg_departmental_group_id,
+        vodg.ifg_departmental_group_name,
+        vodg.ifg_departmental_group_short_name,
+        vodg.start_year,
+        vodg.start_quarter,
+        vodg.end_year,
+        vodg.end_quarter,
+        ISNULL(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
+        ISNULL(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
+    FROM civil_service.organisation o 
+        LEFT JOIN civil_service.vw_ifg_core_departments vicd ON
+            o.id = vicd.organisation_id
+        LEFT JOIN civil_service.vw_organisation_departmental_group vodg ON
+            o.id = vodg.organisation_id
+)
