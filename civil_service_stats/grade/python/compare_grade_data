@@ -93,3 +93,17 @@ assert len(df_sql) == len(df_excel), "Row counts don't match!"
 # Compare across key values (uniquely identifying rows)
 
 keys = ["Year", "Quarter", "Organisation", "Grade", "FTE"]
+
+df_merge = df_excel.merge(
+    df_sql, on=keys, how="outer", suffixes=("_excel", "_sql"), indicator=True
+)
+
+rows_excel = df_merge[df_merge["_merge"] == "left_only"]
+rows_sql = df_merge[df_merge["_merge"] == "right_only"]
+rows_both = df_merge[df_merge["_merge"] == "both"]
+
+print(f"Rows in Excel frame only: {len(rows_excel)}")
+print(f"Rows in SQL frame only: {len(rows_sql)}")
+print(f"Rows in both: {len(rows_both)}")
+
+assert len(df_sql) == len(df_merge), "Row counts in SQL/Excel and merged frames don't match!"
