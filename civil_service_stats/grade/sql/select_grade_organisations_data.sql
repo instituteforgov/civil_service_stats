@@ -31,10 +31,10 @@ o_vicd_vodg AS (
             o.id = vodg.organisation_id
 )
 
-SELECT 
+SELECT
     cs_stats_grade.id,
-    cs_stats_grade.quarter [Quarter],
     cs_stats_grade.year [Year],
+    cs_stats_grade.quarter [Quarter],
     cs_stats_grade.organisation_name [Organisation],
     cs_stats_grade.grade [Grade],
     cs_stats_grade.headcount_fte [FTE],
@@ -47,24 +47,20 @@ SELECT
         WHEN 'Security and Intelligence Services' THEN 'Security services'
         ELSE o_vicd_vodg.ifg_departmental_group_short_name 
     END [Departmental group],
+    CASE 
+        WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
+        ELSE 'N'
+    END [IfG core department],
     CASE cs_stats_grade.organisation_name
         WHEN 'All employees' THEN 'All employees'
-        ELSE IIF(
-            vol1.latest_organisation_name = 'Indeterminate',
-            vol1.latest_determinate_organisation_name,
-            vol1.latest_organisation_name
-        )
+        ELSE vol1.latest_organisation_name
     END [Latest organisation],
-    CASE cs_stats_age.organisation_name
+    CASE cs_stats_grade.organisation_name
         WHEN 'All employees' THEN 'All employees'
         WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE IIF(
-            vol2.latest_organisation_short_name = 'Indeterminate',
-            vol2.latest_determinate_organisation_short_name,
-            vol2.latest_organisation_short_name
-        )
+        ELSE vol2.latest_organisation_short_name
     END [Latest departmental group]
-FROM cs_stats_grade   
+FROM cs_stats_grade  
     LEFT JOIN o_vicd_vodg ON 
         cs_stats_grade.organisation_id = o_vicd_vodg.id AND
         cs_stats_grade.survey_period BETWEEN o_vicd_vodg.start_period AND o_vicd_vodg.end_period 
