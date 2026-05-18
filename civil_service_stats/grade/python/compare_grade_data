@@ -21,8 +21,9 @@ from IPython.display import display
 # %%
 # Set constants
 
-EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - Grade/Grade by department.xlsx"
+EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - Grade/Grade by department.xlsx"
 SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/grade/sql/compare_grade_organisations_data.sql"
+
 
 # %%
 # Connect to d/b
@@ -107,3 +108,38 @@ print(f"Rows in SQL frame only: {len(rows_sql)}")
 print(f"Rows in both: {len(rows_both)}")
 
 assert len(df_sql) == len(df_merge), "Row counts in SQL/Excel and merged frames don't match!"
+
+# %%
+# Display any differneces in matched rows (i.e. check that, for example, the same organisations are appearing where they should in both DataFrames)
+
+values = [col for col in cols_both if col not in keys]
+
+mismatch_mask = {}
+for col in values:
+    sql_col = f"{col}_sql"
+    excel_col = f"{col}_excel"
+
+    if sql_col in rows_both and excel_col in rows_both:
+        sql_series = rows_both[sql_col]
+        excel_series = rows_both[excel_col]
+        match_mask = (
+            (sql_series == excel_series) |
+            (rows_both[sql_col].isna() & rows_both[excel_col].isna())
+            )
+    if (~match_mask).any():
+        mismatch_mask[col] = (~match_mask)
+
+if mismatch_mask:
+    display({col: int(mask.sum()) for col, mask in mismatch_mask.items()})
+    for col, mask in mismatch_mask.items():
+        sql_col = f"{col}_sql"
+        excel_col = f"{col}_excel"
+        preview = (
+            rows_both.loc[mask, ["Year", "Organisation", sql_col, excel_col]]
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
+        print(f"Mismatches in '{col}':")
+        display(preview)
+else:
+    print("No value mismatches in matched rows")
