@@ -23,7 +23,7 @@ from civil_service_stats.utils import resolve_org_id
 # %%
 # Set file path constant
 
-FILE_PATH = "C:/User" + os.getlogin() + "INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - location/Location working file.xlsx"
+FILE_PATH = "C:/Users/" + os.getlogin() + "INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - location/Location working file.xlsx"
 
 # %%
 # Establish d/b connection
