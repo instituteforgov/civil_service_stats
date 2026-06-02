@@ -91,8 +91,6 @@ df_location.insert(
 )
 
 # %%
-df_location
-# %%
 # Write to d/b
 
 df_location.to_sql(
@@ -109,7 +107,6 @@ df_location.to_sql(
         "year": SMALLINT,
         "quarter": TINYINT,
         "region": NVARCHAR(30),
-        "age": NVARCHAR(20),
         "total": INT
     }
 )
