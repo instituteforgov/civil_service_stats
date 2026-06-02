@@ -1,3 +1,4 @@
+
 WITH cs_stats_location AS (
     SELECT *, year * 4 + 1 survey_period
     FROM civil_service.civil_service_statistics_location
@@ -65,3 +66,4 @@ FROM cs_stats_location
         o_vicd_vodg.id = vol1.organisation_id 
     LEFT JOIN civil_service.vw_organisation_latest vol2 ON
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
+
