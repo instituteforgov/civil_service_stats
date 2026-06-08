@@ -4,7 +4,7 @@ import os
 import ds_utils.database_operations as dbo
 import pandas as pd
 from civil_service_stats.utils import add_iteration_suffix
-from IPython.display import display
+# from IPython.display import display
 
 # %%
 # Set file paths, connect to d/b an load data
@@ -68,5 +68,6 @@ print(f"Columns in both frames: {cols_both}")
 
 # %%
 
-assert len(df_sql) == len(df_excel)
+assert len(df_sql) == len(df_excel), f"Row count mismatch: SQL Dataframe has {len(df_sql)} rows, Excel DataFrame has {len(df_excel)}"
+
 # %%
