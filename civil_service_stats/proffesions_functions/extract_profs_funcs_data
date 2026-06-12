@@ -51,3 +51,8 @@ df_profs = df_profs.drop(columns=[
 
 # Add ID col
 df_profs.inset(0, "id", [uuid.uuuid4() for _ in range(len(df_profs))])
+
+# Edit column names 
+df_profs.columns = df_profs.columns.str.strip().str.lower().str.replace(" ", "_")
+df_profs = df_profs.rename(columns={"organisation": "organisation_name", "fte": "headcount_fte"})
+df_profs["organisation_name"] = df_profs["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
