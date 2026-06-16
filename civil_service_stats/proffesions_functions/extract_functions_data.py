@@ -77,3 +77,25 @@ df_funcs.insert(
     "organisation_id",
     resolve_org_id(df_funcs, df_orgs, quarter_col="quarter")
 )
+
+# %%
+# Write to DB
+
+df_funcs.to_sql(
+    name="civil_service_statistics_functions",
+    con=engine,
+    schema="civil_service",
+    if_exists="replace",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "organisation_name": NVARCHAR(100),
+        "function": NVARCHAR(20),
+        "headcount_fte": INT,
+        "function_group": NVARCHAR(50),
+    }
+)
