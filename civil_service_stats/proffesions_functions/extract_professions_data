@@ -79,7 +79,7 @@ df_profs.insert(
 )
 
 # %%
-df_profs
+df_profs["profession"].str.len().max()
 
 # %%
 # Write to DB
@@ -97,7 +97,7 @@ df_profs.to_sql(
         "quarter": TINYINT,
         "organisation_id": UNIQUEIDENTIFIER,
         "organisation_name": NVARCHAR(100),
-        "age": NVARCHAR(20),
+        "profession": NVARCHAR(50),
         "headcount_fte": INT,
         "profession_group": NVARCHAR(50),
         "profession_category": NVARCHAR(40),
