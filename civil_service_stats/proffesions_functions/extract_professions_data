@@ -79,6 +79,9 @@ df_profs.insert(
 )
 
 # %%
+df_profs
+
+# %%
 # Write to DB
 
 df_profs.to_sql(
@@ -90,9 +93,9 @@ df_profs.to_sql(
     chunksize=3000,
     dtype={
         "id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
         "quarter": TINYINT,
         "organisation_id": UNIQUEIDENTIFIER,
-        "year": SMALLINT,
         "organisation_name": NVARCHAR(100),
         "age": NVARCHAR(20),
         "headcount_fte": INT,
