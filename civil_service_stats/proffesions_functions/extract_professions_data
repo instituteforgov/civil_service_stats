@@ -82,7 +82,7 @@ df_profs.insert(
 # Write to DB
 
 df_profs.to_sql(
-    name="civil_service_statistics_professions_functions",
+    name="civil_service_statistics_professions",
     con=engine,
     schema="civil_service",
     if_exists="replace",
