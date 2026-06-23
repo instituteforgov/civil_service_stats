@@ -79,9 +79,6 @@ df_profs.insert(
 )
 
 # %%
-df_profs["profession"].str.len().max()
-
-# %%
 # Write to DB
 
 df_profs.to_sql(
