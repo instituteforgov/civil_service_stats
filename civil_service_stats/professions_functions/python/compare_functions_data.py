@@ -71,3 +71,22 @@ print(f"Columns in both frames: {cols_both}")
 # %%
 
 assert len(df_sql) == len(df_excel), f"Row count mismatch: SQL Dataframe has {len(df_sql)} rows, Excel DataFrame has {len(df_excel)}"
+
+# %%
+# Compare key column values
+
+key_cols = ["Year", "Quarter", "Organisation", "Profession", "Profession group", "Government classification"]
+
+df_merge = df_sql.merge(
+    df_excel, on=key_cols, how='outer', suffixes=("_sql", "_excel"), indicator=True
+    )
+
+rows_excel = df_merge[df_merge["_merge"] == "right_only"]
+rows_sql = df_merge[df_merge["_merge"] == "left_only"]
+rows_both = df_merge[df_merge["merge"] == "both"]
+
+print(f"Rows in SQL frame only: {len(rows_sql)}")
+print(f"Rows in Excel frame only: {len(rows_excel)}")
+print(f"Rows in both: {len(rows_both)}")
+
+assert len(df_merge) == len(df_sql), f"Merged frame has {len(df_merge)} rows but SQL/Excel frames have {len(df_sql)} rows!"
