@@ -56,3 +56,18 @@ df_sql["Latest organisation"] = df_sql.apply(
         lambda row: row["Organisation"] if row["Latest organisation"] == "Non-civil service" else row["Latest organisation"],
         axis=1,
 )
+
+# %%
+# Compare columns
+
+excel_only = [col for col in df_excel.columns if col not in df_sql.columns]
+sql_only = [col for col in df_sql.columns if col not in df_excel.columns]
+cols_both = [col for col in df_excel.columns if col in df_sql.columns]
+
+print(f"Columns in Excel frame only: {excel_only}")
+print(f"Columns in SQL frame only: {sql_only}")
+print(f"Columns in both frames: {cols_both}")
+
+# %%
+
+assert len(df_sql) == len(df_excel), f"Row count mismatch: SQL Dataframe has {len(df_sql)} rows, Excel DataFrame has {len(df_excel)}"
