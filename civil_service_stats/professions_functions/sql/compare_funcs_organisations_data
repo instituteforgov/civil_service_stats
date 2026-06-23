@@ -32,6 +32,7 @@ SELECT
     cs_stats_functions.organisation_name [Organisation],
     cs_stats_functions.[function] [Function],
     cs_stats_functions.headcount_fte [FTE],
+    cs_stats_functions.function_group [Function group],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
         ELSE o_vicd_vodg.type
