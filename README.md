@@ -3,6 +3,12 @@
 Scripts for extracting various IfG datasets built on [Civil Service Statistics (CSS)](https://www.gov.uk/government/collections/civil-service-statistics)
 releases.
 
+## Related repositories
+
+- 🔓 [Civil service data utilities](https://github.com/instituteforgov/cs_data_utils/)
+- 🔓 [Civil service organisations](https://github.com/instituteforgov/cs_organisations/)
+- 🔓 [Civil service staff numbers](https://github.com/instituteforgov/cs_staff_numbers)
+
 ## Project structure
 
 Below is a generalised view of the structure of the repository. `dataset` below is an umbrella for each of the CSS datasets, which are: `age`, `disability_status`, `ethnicity`, `faith`, `sex`, `sexual_orientation`, `grade`, `leaving_cause`, `location`, `pay` and `professions_functions`.
