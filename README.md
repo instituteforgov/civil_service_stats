@@ -12,9 +12,9 @@ Below is a generalised view of the structure of the repository. `dataset` below 
 |   ├── dataset/
 |   |   ├── legcy/
 |   |   |   ├── python/
-|   |   |   |   ├── extract_dataset_data.py
-|   |   |   |   ├── compare_dataset_data.py
-|   |   |   ├── compare_dataset_organisations_data.sql
+|   |   |   |   ├── extract_legacy_dataset_data.py
+|   |   |   |   ├── compare_legacy_dataset_data.py
+|   |   |   ├── compare_legacy_dataset_organisations_data.sql
 |   |   ├── sql/
 |   |   |   ├── select_dataset_organisations_data.sql
 |   ├── utils.py
