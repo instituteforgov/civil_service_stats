@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import ds_utils.database_operations as dbo
 
+from cs_data_utils.utils import compare_dataframes
 from civil_service_stats.utils import add_iteration_suffix
 
 # %%
@@ -38,7 +39,6 @@ df_sql = pd.read_sql(sql, con=engine)
 # %%
 # Edit data
 
-
 df_excel = df_excel.drop(columns=[
     "Managed", "Managed?", "Census", "Ministerial department/executive agency/selected non-ministerial department"
 ])
@@ -58,3 +58,10 @@ df_sql["Latest organisation"] = df_sql.apply(
         lambda row: row["Organisation"] if row["Latest organisation"] == "Non-civil service" else row["Latest organisation"],
         axis=1,
 )
+
+# %%
+# Compare dataframes
+
+key_cols = ["Year", "Quarter", "Organisation", "Function", "FTE", "Function group"]
+
+compare_dataframes(df_excel, df_sql, key_cols)
