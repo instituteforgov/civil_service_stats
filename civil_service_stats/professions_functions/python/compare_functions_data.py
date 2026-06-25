@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 import ds_utils.database_operations as dbo
+from IPython.display import display
 
 from civil_service_stats.utils import add_iteration_suffix
 
@@ -75,7 +76,7 @@ assert len(df_sql) == len(df_excel), f"Row count mismatch: SQL Dataframe has {le
 # %%
 # Compare key column values
 
-key_cols = ["Year", "Quarter", "Organisation", "Profession", "Profession group", "Government classification"]
+key_cols = ["Year", "Quarter", "Organisation", "Function", "FTE", "Function group"]
 
 df_merge = df_sql.merge(
     df_excel, on=key_cols, how='outer', suffixes=("_sql", "_excel"), indicator=True
@@ -90,3 +91,38 @@ print(f"Rows in Excel frame only: {len(rows_excel)}")
 print(f"Rows in both: {len(rows_both)}")
 
 assert len(df_merge) == len(df_sql), f"Merged frame has {len(df_merge)} rows but SQL/Excel frames have {len(df_sql)} rows!"
+
+# %%
+# Compare values in calculated columns
+
+cols = [col for col in cols_both if col not in key_cols]
+
+mismatch_mask = {}
+for col in cols:
+    sql_col = f"{col}_sql"
+    excel_col = f"{col}_excel"
+
+    if sql_col in rows_both and excel_col in rows_both:
+        sql_series = rows_both[sql_col]
+        excel_series = rows_both[excel_col]
+        match_mask = (
+            (sql_series == excel_series) |
+            (rows_both[sql_col].isna() & rows_both[excel_col].isna())
+            )
+    if (~match_mask).any():
+        mismatch_mask[col] = (~match_mask)
+
+if mismatch_mask:
+    display({col: int(mask.sum()) for col, mask in mismatch_mask.items()})
+    for col, mask in mismatch_mask.items():
+        sql_col = f"{col}_sql"
+        excel_col = f"{col}_excel"
+        preview = (
+            rows_both.loc[mask, ["Year", "Organisation", sql_col, excel_col]]
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
+        print(f"Mismatches in '{col}':")
+        display(preview)
+else:
+    print("No value mismatches in matched rows")
