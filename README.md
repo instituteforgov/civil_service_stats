@@ -36,4 +36,4 @@ These scripts were used to a one-time extraction of existing collated data from 
 | ---- | ----------- |
 | `extract_legecy_dataset_data.py` | Reads data from existing CS Stats Excel sheet and loads to database |
 | `compare_legacy_dataset_data.py` | Checks that augmented SQL output matches data from source Excel |
-| `compare_dataset_organisation_data.sql` | Replicates the organisation collation done in the Excel working file - basis for comparison with source in `compare_legacy_dataset_data.py` |
+| `compare_legacy_dataset_organisation_data.sql` | Replicates the organisation collation done in the Excel working file - basis for comparison with source in `compare_legacy_dataset_data.py` |
