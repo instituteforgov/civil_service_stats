@@ -49,12 +49,16 @@ df_pay = df_pay.drop(columns=[
 ])
 
 # Add ID col
-df_pay.insert(0, "id", [uuid.uuid4() for _ in range(len(df_pay))])
+df_pay.insert(0, 'id', [uuid.uuid4() for i in range(len(df_pay))])
 
 # Edit column names and remove iteration suffixes
 df_pay.columns = df_pay.columns.str.strip().str.lower().str.replace(" ", "_")
 df_pay = df_pay.rename(columns={"organisation": "organisation_name"})
-df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
+df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(
+    r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
+
+# Replace string N/A charaacters in pay column
+df_pay["median_salary"] = pd.to_numeric(df_pay["median_salary"], errors="coerce")
 
 # %%
 # Add org ID column
@@ -78,9 +82,6 @@ df_pay.insert(
 )
 
 # %%
-df_pay
-
-# %%
 # Write to DB
 
 df_pay.to_sql(
@@ -92,10 +93,10 @@ df_pay.to_sql(
     chunksize=3000,
     dtype={
         "id": UNIQUEIDENTIFIER,
-        "year": SMALLINT,
-        "quarter": TINYINT,
         "organisation_id": UNIQUEIDENTIFIER,
         "organisation_name": NVARCHAR(100),
+        "year": SMALLINT,
+        "quarter": TINYINT,
         "grade": NVARCHAR(50),
         "median_salary": INT,
     }
