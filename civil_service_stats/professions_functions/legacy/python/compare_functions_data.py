@@ -10,7 +10,7 @@ from civil_service_stats.utils import add_iteration_suffix
 # Set filepaths
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Data.Collated_FunctionbyDept"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/professions_functions/sql/compare_funcs_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/professions_functions/legacy/compare_funcs_organisations_data"
 
 # %%
 # Connect to DB
