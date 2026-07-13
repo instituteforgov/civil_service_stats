@@ -10,8 +10,8 @@ from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
 # %%
-FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity status/Disability status of civil servants.xlsx"
-SHEET_NAME = "Data.Colalte_DisabilitybyDept"
+FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - disability status/Disability status of civil servants.xlsx"
+SHEET_NAME = "Data.Collated_DisabilitybyDept"
 
 # %%
 # Connect to database
@@ -38,9 +38,9 @@ df_disability = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 cols = ["Release number",
         "Departmental group",
         "Organisation type",
-        "Mandisabilityd",
+        "Managed",
         "Census",
-        "Ministerial department/executive disabilityncy/selected non-ministerial department",
+        "Ministerial department/executive agency/selected non-ministerial department",
         "Latest organisation",
         "Latest departmental group"]
 
@@ -92,7 +92,7 @@ df_disability.to_sql(
         "quarter": TINYINT,
         "organisation_id": UNIQUEIDENTIFIER,
         "organisation_name": NVARCHAR(100),
-        "disability_status": NVARCHAR(20),
+        "disability_status": NVARCHAR(50),
         "headcount": INT
     }
 )
