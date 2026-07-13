@@ -11,7 +11,7 @@ from civil_service_stats.utils import add_iteration_suffix
 # Set filepaths
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Data.Collated_ProfessionbyDept"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/professions_functions/legacy/compare_profs_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/professions_functions/legacy/compare_profs_organisations_data.sql"
 
 # %%
 # Connect to DB
@@ -40,7 +40,7 @@ df_sql = pd.read_sql(sql, con=engine)
 # Edit data
 
 df_excel = df_excel.drop(columns=[
-    "Managed", "Managed?", "Census", "Ministerial department/executive agency/selected non-ministerial department"
+    "Managed", "Census", "Ministerial department/executive agency/selected non-ministerial department"
 ])
 
 df_sql["Organisation"] = df_sql.apply(add_iteration_suffix, col="Organisation", axis=1)
@@ -62,6 +62,8 @@ df_sql["Latest organisation"] = df_sql.apply(
 # %%
 # Compare dataframes
 
-key_cols = ["Year", "Quarter", "Organisation", "Function", "FTE", "Function group"]
+key_cols = ["Year", "Quarter", "Organisation", "Profession", "FTE", "Profession group", "Profession category", "Government classification"]
 
 compare_dataframes(df_excel, df_sql, key_cols)
+
+# %%
