@@ -10,7 +10,7 @@ from civil_service_stats.utils import add_iteration_suffix
 # %%
 # Set filepaths
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - pay/Pay working file.xlsx"
-SHEET_NAME = "Data.Collated_ProfessionbyDept"
+SHEET_NAME = "Collated.Organisation x grade"
 SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/pay/legacy/compare_pay_organisations_data"
 
 
@@ -63,6 +63,7 @@ df_sql["Latest organisation"] = df_sql.apply(
 # %%
 # Compare dataframes
 
-key_cols = ["Year", "Quarter", "Organisation", "Function", "FTE", "Function group"]
+key_cols = ["Year", "Quarter", "Organisation", "Grade", "Median salary"]
 
 compare_dataframes(df_excel, df_sql, key_cols)
+
