@@ -33,6 +33,7 @@ SELECT
     cs_stats_professions.profession [Profession],
     cs_stats_professions.headcount_fte [FTE],
     cs_stats_professions.profession_group [Profession group],
+    cs_stats_professions.profession_category [Profession category],
     cs_stats_professions.government_classification [Government classification],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
