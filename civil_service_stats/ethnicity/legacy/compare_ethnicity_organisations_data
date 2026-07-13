@@ -31,7 +31,7 @@ SELECT
     cs_stats_ethnicity.quarter [Quarter],
     cs_stats_ethnicity.year [Year],
     cs_stats_ethnicity.organisation_name [Organisation],
-    cs_stats_ethnicity.ethnicity [ethnicity status],
+    cs_stats_ethnicity.ethnicity [Ethnicity],
     cs_stats_ethnicity.headcount [Headcount],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
