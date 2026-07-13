@@ -66,4 +66,3 @@ df_sql["Latest organisation"] = df_sql.apply(
 key_cols = ["Year", "Quarter", "Organisation", "Grade", "Median salary"]
 
 compare_dataframes(df_excel, df_sql, key_cols)
-
