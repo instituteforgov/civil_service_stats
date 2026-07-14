@@ -31,7 +31,7 @@ SELECT
     cs_stats_faith.quarter [Quarter],
     cs_stats_faith.year [Year],
     cs_stats_faith.organisation_name [Organisation],
-    cs_stats_faith.religion_or_belief [Religion or belief],
+    cs_stats_faith.religion_or_belief [Religion or Belief],
     cs_stats_faith.headcount [Headcount],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
