@@ -32,7 +32,6 @@ engine = dbo.connect_sql_db(
 
 df_sex = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 
-
 # %%
 # Edit data
 
@@ -81,7 +80,7 @@ df_sex.insert(
 # Write to d/b
 
 df_sex.to_sql(
-    name="civil_service_statistics_sexual_orientation",
+    name="civil_service_statistics_sex",
     con=engine,
     schema="civil_service",
     if_exists="replace",
