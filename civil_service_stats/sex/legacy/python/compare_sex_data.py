@@ -63,8 +63,6 @@ df_sql["Latest organisation"] = df_sql.apply(
 # %%
 # Compare dataframes
 
-key_cols = ["Year", "Quarter", "Organisation", "Sex and grade", "Headcount"]
+key_cols = ["Year", "Quarter", "Organisation", "Sex and Grade", "Headcount"]
 
 compare_dataframes(df_excel, df_sql, key_cols)
-
-# %%
