@@ -36,7 +36,7 @@ SELECT
     cs_stats_sex.quarter [Quarter],
     cs_stats_sex.year [Year],
     cs_stats_sex.organisation_name [Organisation],
-    cs_stats_sex.sex_and_grade [Sex and grade],
+    cs_stats_sex.sex_and_grade [Sex and Grade],
     cs_stats_sex.headcount [Headcount],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
