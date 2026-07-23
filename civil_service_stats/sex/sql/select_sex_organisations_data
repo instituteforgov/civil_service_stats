@@ -50,7 +50,7 @@ SELECT
     CASE 
         WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
         ELSE 'N'
-    END [IfG core dpeartment],
+    END [IfG core department],
     CASE cs_stats_sex.organisation_name
         WHEN 'All employees' THEN 'All employees'
         ELSE vol1.latest_organisation_name
