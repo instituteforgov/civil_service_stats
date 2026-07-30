@@ -70,3 +70,59 @@ EXPECTED_COL_NAMES = [
     "Total headcount of all civil servants"
 ]
 
+# %%
+# Set up logging
+
+_log_dir = Path(os.environ["LOCALAPPDATA"]) / "civil_service_stats" / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(_log_dir / "extract_age_data.log", encoding="utf-8"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+# %%
+# Load latest data release
+source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Initial read as strings to allow structural checks against params
+df_age_str = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Then read using layout constants defined above to skip non-data rows
+skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
+df_age = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    skiprows=skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+
+# %%
+# Check structure matches expectation
+# 1: Title
+# 1: Title
+_sheet_title = str(df_age_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
+assert _sheet_title == EXPECTED_SHEET_TITLE, (
+    f"Unexpected title: {_sheet_title}"
+)
+
+# 2: Column headers
+_actual_headers = df_age_str.iloc[HEADER_ROW].tolist()
+assert _actual_headers == EXPECTED_COL_NAMES, (
+    f"Column headers do not match expected structure. \n"
+    f"  Expected: {EXPECTED_COL_NAMES}\n"
+    f"  Actual: {_actual_headers}"
+)
