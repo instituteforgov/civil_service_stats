@@ -150,6 +150,7 @@ logger.info("Passed all structure and data quality checks")
 
 # %%
 # Clean and edit data
+
 # Edit column names
 new_names = [
     "parent_department",
