@@ -35,8 +35,8 @@ import pandas as pd
 import yaml
 import uuid
 
-from sqlalchemy import DECIMAL, NVARCHAR, SMALLINT
-from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
+from sqlalchemy import INT, NVARCHAR, SMALLINT
+from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
 # %%
@@ -217,4 +217,26 @@ df_grade.insert(
     df_grade.columns.get_loc("organisation_name"),
     "organisation_id",
     resolve_org_id(df_grade, df_orgs, quarter_col="quarter")
+)
+
+# %%
+# %%
+# Append new rows to database
+
+df_grade.to_sql(
+    name="civil_service_statistics_grade",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "organisation_name": NVARCHAR(100),
+        "age": NVARCHAR(20),
+        "headcount_fte": INT
+    }
 )
