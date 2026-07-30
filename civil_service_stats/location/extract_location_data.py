@@ -146,3 +146,12 @@ assert _actual_headers == EXPECTED_COL_NAMES, (
     f"  Expected: {EXPECTED_COL_NAMES}\n"
     f"  Actual: {_actual_headers}"
 )
+
+# %%
+# Perform data quality checks:
+# Unused NA values
+used_na_vals = {v for v in NA_VALS if (df_location_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
+assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
+
+logger.info("Passed all structure and data quality checks")
