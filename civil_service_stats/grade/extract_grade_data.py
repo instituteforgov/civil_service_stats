@@ -73,12 +73,13 @@ FIRST_DATA_ROW = 7
 # %%
 # Initialise logger
 
-Path("logs").mkdir(exist_ok=True)
+_log_dir = Path(os.environ["LOCALAPPDATA"]) / "civil_service_stats" / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[
-        logging.FileHandler("logs/extract_grade_data.log", encoding="utf-8"),
+        logging.FileHandler(_log_dir / "extract_grade_data.log", encoding="utf-8"),
         logging.StreamHandler(),
     ],
 )
