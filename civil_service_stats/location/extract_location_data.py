@@ -155,3 +155,80 @@ unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
 assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
 
 logger.info("Passed all structure and data quality checks")
+
+# %%
+# Clean and edit data
+
+# Edit column names
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "North East",
+    "North West",
+    "Yorkshire and The Humber",
+    "East Midlands",
+    "West Midlands",
+    "East",
+    "London",
+    "South East",
+    "South West",
+    "Wales",
+    "Scotland",
+    "Northern Ireland",
+    "Overseas",
+    "Not Reported",
+    "All employees"
+]
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_location = df_location.rename(columns=col_names)
+
+# Unpivot table
+df_location = df_location.melt(
+    id_vars=["parent_department", "organisation_name"],
+    var_name="region",
+    value_name="total",
+    ignore_index=False
+).sort_index().reset_index(drop=True)
+
+# Drop parent dept column
+df_location = df_location.drop(columns=["parent_department"])
+
+# Filter out 'Overall' rows
+df_location = df_location[~df_location["organisation_name"].str.endswith(" Overall")]
+
+# Delete unwanted strings
+delete_vals = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)"
+]
+for s in delete_vals:
+    df_location["organisation_name"] = df_location["organisation_name"].str.replace(s, "", regex=False)
+
+# Replace 'Overall Civil Service' with 'All employees'
+df_location["organisation_name"] = df_location["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+# Add UUID, year and quarter columns
+df_location.insert(0, 'id', [uuid.uuid4() for i in range(len(df_location))])
+df_location.insert(1, 'year', EXPECTED_YEAR)
+df_location.insert(2, 'quarter', 1)
+
+# Insert org IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_location.insert(
+    df_location.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_location, df_orgs, quarter_col="quarter")
+)
