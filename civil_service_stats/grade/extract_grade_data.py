@@ -33,7 +33,7 @@ import pandas as pd
 import yaml
 import uuid
 
-from sqlalchemy import INT, NVARCHAR, SMALLINT
+from sqlalchemy import INT, NVARCHAR, SMALLINT, text
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
@@ -147,6 +147,27 @@ unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
 assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
 
 logger.info("Passed all structure and data quality checks")
+
+# %%
+# Duplicate check
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_grade cs_grade
+        where cs_grade.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} aready has {n_existing} rows in the CS Stats location "
+    "table in the database. Remove them before re-running, or check you are "
+    "loading the correct release"
+)
+
+logger.info("Duplicate check passed — no existing rows for %s", EXPECTED_YEAR)
 
 # %%
 # Clean and edit data
