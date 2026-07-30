@@ -11,18 +11,20 @@ releases.
 
 ## Project structure
 
-Below is a generalised view of the structure of the repository. `dataset` below is an umbrella for each of the CSS datasets, which are: `age`, `disability_status`, `ethnicity`, `faith`, `sex`, `sexual_orientation`, `grade`, `leaving_cause`, `location`, `pay` and `professions_functions`.
+Below is a generalised view of the structure of the repository. `<dataset>` below is an umbrella for each of the CSS datasets, which are: `age`, `disability_status`, `ethnicity`, `faith`, `sex`, `sexual_orientation`, `grade`, `leaving_cause`, `location`, `pay` and `professions_functions`.
 
 ```
 ├── civil_service_stats/
-|   ├── dataset/
+|   ├── <dataset>/
 |   |   ├── legcy/
 |   |   |   ├── python/
-|   |   |   |   ├── extract_legacy_dataset_data.py
-|   |   |   |   ├── compare_legacy_dataset_data.py
-|   |   |   ├── compare_legacy_dataset_organisations_data.sql
+|   |   |   |   ├── extract_legacy_<dataset>_data.py
+|   |   |   |   ├── compare_legacy_<dataset>_data.py
+|   |   |   ├── compare_legacy_<dataset>_organisations_data.sql
 |   |   ├── sql/
-|   |   |   ├── select_dataset_organisations_data.sql
+|   |   |   ├── select_<dataset>_organisations_data.sql
+|   |   ├── extract_<dataset>_data.py
+|   |   ├── <dataset>_params.yaml
 |   ├── utils.py
 ├── .pre-commit-config.yaml
 └── README.md
@@ -32,7 +34,8 @@ Below is a generalised view of the structure of the repository. `dataset` below 
 
 | File | Description |
 | ---- | ----------- |
-| `select_dataset_organisations_data.sql` | Augments organisations data and re-inserts into Excel file. Same as `compare_dataset_organisation_data.sql` but with following small changes: <ul><li><strong>IfG core department</strong>: Added</li><li><strong>Latest organisation</strong>: Latest actual organisation always reported, rather than latest determinate organisation</li><li><strong>Latest departmental group</strong>: Latest actual (IfG) departmental group always reported, rather than latest determinate organisation</li></ul>  
+| `select_<dataset>_organisations_data.sql` | Augments organisations data and re-inserts into Excel file. Same as `compare_<dataset>_organisation_data.sql` but with following small changes: <ul><li><strong>IfG core department</strong>: Added</li><li><strong>Latest organisation</strong>: Latest actual organisation always reported, rather than latest determinate organisation</li><li><strong>Latest departmental group</strong>: Latest actual (IfG) departmental group always reported, rather than latest determinate organisation</li></ul> |
+| `extract_<dataset>_data.py` | Reads data from the most recent Civil Service Statistics release and appends to research database |
 
 ## Legacy scripts
 
