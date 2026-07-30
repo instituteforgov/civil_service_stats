@@ -38,3 +38,95 @@ from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
 # %%
+# %%
+# Read in parameters from yaml file
+
+with open("location_params.yaml", encoding="utf-8") as f:
+    params = yaml.safe_load(f)[-1]
+
+# %%
+# Set constants
+
+SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
+SOURCE_FILE = params["source_file"]
+SHEET_NAME = params["grade_sheet_name"]
+EXPECTED_SHEET_TITLE = params["expected_location_sheet_title"]
+EXPECTED_YEAR = params["year"]
+NA_VALS = params["na_values"]
+
+# Define expected table layout
+HEADER_ROW = 5
+FIRST_DATA_ROW = 6
+EXPECTED_COL_NAMES = [
+    "Civil Service parent department",
+    "Civil Service organisation",
+    "Headcount of all civil servants based in the North East",
+    "Headcount of all civil servants based in the North West",
+    "Headcount of all civil servants based in Yorkshire and The Humber",
+    "Headcount of all civil servants based in the East Midlands",
+    "Headcount of all civil servants based in the West Midlands",
+    "Headcount of all civil servants based in the East",
+    "Headcount of all civil servants based in London",
+    "Headcount of all civil servants based in the South East",
+    "Headcount of all civil servants based in the South West",
+    "Headcount of all civil servants based in Wales",
+    "Headcount of all civil servants based in Scotland",
+    "Headcount of all civil servants based in Northern Ireland",
+    "Headcount of all civil servants based overseas",
+    "Headcount of all civil servants with an unreported location",
+    "Total headcount of all civil servants"
+]
+
+# %%
+# Initialise logger
+
+_log_dir = Path(os.environ["LOCALAPPDATA"]) / "civil_service_stats" / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(_log_dir / "extract_location_data.log", encoding="utf-8"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+# %%
+# Connect to database
+
+engine = dbo.connect_sql_db(
+    driver="pyodbc",
+    driver_version=os.environ["ODBC_DRIVER"],
+    dialect="mssql",
+    server=os.environ["ODBC_SERVER"],
+    database=os.environ["ODBC_DATABASE"],
+    authentication=os.environ["ODBC_AUTHENTICATION"],
+    username=os.environ["AZURE_CLIENT_ID"],
+    password=os.environ["AZURE_CLIENT_SECRET"],
+)
+
+# %%
+# Load latest data release
+source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Initial read as strings to allow structural checks against params
+df_location_str = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Then read using layout constants defined above to skip non-data rows
+skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
+df_location = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    skiprows=skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
