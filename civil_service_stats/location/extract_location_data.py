@@ -33,7 +33,7 @@ import pandas as pd
 import yaml
 import uuid
 
-from sqlalchemy import INT, NVARCHAR, SMALLINT
+from sqlalchemy import INT, NVARCHAR, SMALLINT, text
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
@@ -156,6 +156,27 @@ assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_v
 logger.info("Passed all structure and data quality checks")
 
 # %%
+# Duplicate check
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_location cs_loc
+        where cs_loc.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} aready has {n_existing} rows in the CS Stats location "
+    "table in the database. Remove them before re-running, or check you are "
+    "loading the correct release"
+)
+
+logger.info("Duplicate check passed — no existing rows for %s", EXPECTED_YEAR)
+
+# %%
 # Clean and edit data
 
 # Edit column names
@@ -234,4 +255,20 @@ df_location.insert(
 
 # %%
 # Write to database
-
+df_location.to_sql(
+    name="civil_service_statistics_location",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "organisation_name": NVARCHAR(100),
+        "year": SMALLINT,
+        "quarter": TINYINT,
+        "region": NVARCHAR(30),
+        "total": INT
+    }
+)
