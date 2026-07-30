@@ -187,7 +187,7 @@ df_location = df_location.melt(
     var_name="region",
     value_name="total",
     ignore_index=False
-).sort_index().reset_index(drop=True)
+).sort_index(kind='stable').reset_index(drop=True)
 
 # Drop parent dept column
 df_location = df_location.drop(columns=["parent_department"])
@@ -231,3 +231,7 @@ df_location.insert(
     "organisation_id",
     resolve_org_id(df_location, df_orgs, quarter_col="quarter")
 )
+
+# %%
+# Write to database
+
