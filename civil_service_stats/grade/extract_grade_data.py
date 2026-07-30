@@ -83,3 +83,58 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+# %%
+# Connect to research database
+
+engine = dbo.connect_sql_db(
+    driver="pyodbc",
+    driver_version=os.environ["ODBC_DRIVER"],
+    dialect="mssql",
+    server=os.environ["ODBC_SERVER"],
+    database=os.environ["ODBC_DATABASE"],
+    authentication=os.environ["ODBC_AUTHENTICATION"],
+    username=os.environ["AZURE_CLIENT_ID"],
+    password=os.environ["AZURE_CLIENT_SECRET"],
+)
+
+# %%
+# Load latest data release
+
+source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Initial read as strings to allow structural checks against params
+df_grade_str = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Then read using layout constants defined above to skip non-data rows
+skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
+df_grade = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    skiprows=skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+
+# Perform checks
+# 1: Title
+_sheet_title = str(df_grade_str.iloc[0, 0]).strip()
+assert _sheet_title == EXPECTED_SHEET_TITLE, (
+    f"Unexpected title: {_sheet_title}"
+)
+
+# 2: Column headers
+_actual_headers = df_grade_str.iloc[HEADER_ROW].tolist()
+assert _actual_headers == EXPECTED_COL_NAMES, (
+    f"Column headers do not match expected structure. \n"
+    f"  Expected: {EXPECTED_COL_NAMES}\n"
+    f"  Actual: {_actual_headers}"
+)
