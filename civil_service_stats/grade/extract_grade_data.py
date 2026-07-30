@@ -33,6 +33,7 @@ from pathlib import Path
 import ds_utils.database_operations as dbo
 import pandas as pd
 import yaml
+import uuid
 
 from sqlalchemy import DECIMAL, NVARCHAR, SMALLINT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
@@ -55,7 +56,8 @@ EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
 
 # Define expected table layout
-HEADER_ROW = 6
+HEADER_ROW = 5
+FIRST_DATA_ROW = 6
 EXPECTED_COL_NAMES = [
     "Civil Service parent department",
     "Civil Service organisation",
@@ -67,8 +69,6 @@ EXPECTED_COL_NAMES = [
     "Full-time equivalent (FTE) of all civil servants with an unreported grade",
     "Full-time equivalent (FTE) of all civil servants"
 ]
-
-FIRST_DATA_ROW = 7
 
 # %%
 # Initialise logger
@@ -113,6 +113,7 @@ df_grade_str = pd.read_excel(
     engine="odf"
 )
 
+# %%
 # Then read using layout constants defined above to skip non-data rows
 skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
 df_grade = pd.read_excel(
@@ -123,11 +124,12 @@ df_grade = pd.read_excel(
     engine="odf"
 )
 
-logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+#logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 
-# Perform checks
+# %%
+# Perform structural checks
 # 1: Title
-_sheet_title = str(df_grade_str.iloc[0, 0]).strip()
+_sheet_title = str(df_grade_str.iloc[1, 0]).strip() # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
 assert _sheet_title == EXPECTED_SHEET_TITLE, (
     f"Unexpected title: {_sheet_title}"
 )
@@ -151,12 +153,9 @@ logger.info("Passed all structure and data quality checks")
 
 # %%
 # Clean and edit data
-
-# Drop irrelevant column
-df_grade = df_grade.drop(columns=["Civil Service parent department"])
-
 # Edit column names
 new_names = [
+    "parent_department",
     "organisation_name",
     "Senior Civil Service level",
     "Grades 6 and 7",
@@ -166,15 +165,19 @@ new_names = [
     "Not reported",
     "All employees"
 ]
-col_names = dict.zip((EXPECTED_COL_NAMES[1:], new_names))
-df_grade.columns = df_grade.columns.rename(columns=col_names)
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_grade = df_grade.rename(columns=col_names)
 
 # Unpivot table
 df_grade = df_grade.melt(
-    id_vars="organisation_name",
+    id_vars=["parent_department","organisation_name"],
     var_name="grade",
-    value_name="headcount_fte"
-)
+    value_name="headcount_fte",
+    ignore_index=False,
+).sort_index().reset_index(drop=True)
+
+# Drop irrelevant column
+df_grade = df_grade.drop(columns=["parent_department"])
 
 # Drop 'Overall' departmental rows
 df_grade = df_grade[~df_grade["organisation_name"].str.endswith(" Overall")]
@@ -186,3 +189,32 @@ delete_vals = [
 ]
 for s in delete_vals:
     df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(s, "", regex=False)
+
+# Replace 'Overall Civil Service' with 'All employees'
+df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+# Add UUID, year and quarter columns
+df_grade.insert(0, 'id', [uuid.uuid4() for i in range(len(df_grade))])
+df_grade.insert(1, 'year', EXPECTED_YEAR)
+df_grade.insert(2, 'quarter', 1)
+
+# Insert org IDs from database
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_grade.insert(
+    df_grade.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_grade, df_orgs, quarter_col="quarter")
+)
