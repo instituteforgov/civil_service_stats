@@ -139,3 +139,50 @@ assert _actual_headers == EXPECTED_COL_NAMES, (
     f"  Expected: {EXPECTED_COL_NAMES}\n"
     f"  Actual: {_actual_headers}"
 )
+
+# %%
+# Data quality checks:
+# 1: Unused NA values
+used_na_vals = {v for v in NA_VALS if (df_grade_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
+assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
+
+logger.info("Passed all structure and data quality checks")
+
+# %%
+# Clean and edit data
+
+# Drop irrelevant column
+df_grade = df_grade.drop(columns=["Civil Service parent department"])
+
+# Edit column names
+new_names = [
+    "organisation_name",
+    "Senior Civil Service level",
+    "Grades 6 and 7",
+    "Senior and Higher Executive Officers",
+    "Executive Officers",
+    "Administrative Officers and Assistants",
+    "Not reported",
+    "All employees"
+]
+col_names = dict.zip((EXPECTED_COL_NAMES[1:], new_names))
+df_grade.columns = df_grade.columns.rename(columns=col_names)
+
+# Unpivot table
+df_grade = df_grade.melt(
+    id_vars="organisation_name",
+    var_name="grade",
+    value_name="headcount_fte"
+)
+
+# Drop 'Overall' departmental rows
+df_grade = df_grade[~df_grade["organisation_name"].str.endswith(" Overall")]
+
+# Delete superfluous strings
+delete_vals = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)"
+]
+for s in delete_vals:
+    df_grade["organisation_name"] = df_grade["organisation_name"].str.replace(s, "", regex=False)
