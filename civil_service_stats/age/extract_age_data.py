@@ -86,6 +86,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # %%
+# Connect to database
+
+engine = dbo.connect_sql_db(
+    driver="pyodbc",
+    driver_version=os.environ["ODBC_DRIVER"],
+    dialect="mssql",
+    server=os.environ["ODBC_SERVER"],
+    database=os.environ["ODBC_DATABASE"],
+    authentication=os.environ["ODBC_AUTHENTICATION"],
+    username=os.environ["AZURE_CLIENT_ID"],
+    password=os.environ["AZURE_CLIENT_SECRET"],
+)
+
+# %%
 # Load latest data release
 source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
 
@@ -113,7 +127,6 @@ logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 # %%
 # Check structure matches expectation
 # 1: Title
-# 1: Title
 _sheet_title = str(df_age_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
 assert _sheet_title == EXPECTED_SHEET_TITLE, (
     f"Unexpected title: {_sheet_title}"
@@ -126,3 +139,32 @@ assert _actual_headers == EXPECTED_COL_NAMES, (
     f"  Expected: {EXPECTED_COL_NAMES}\n"
     f"  Actual: {_actual_headers}"
 )
+
+# %%
+# Check unused N/A valus
+
+used_na_vals = {v for v in NA_VALS if (df_age_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS not in used_na_vals]
+assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
+
+logger.info("Passed structural and data quality checks")
+
+# %%
+# Check duplicates in database
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civl_service_statistics_age cs_age
+        where cs_age.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} already has {n_existing} rows in the CS Stats age table "
+    "in the database. Remove before re-running or check if release number is correct"
+)
+
+logger.info("Duplicate check passed - no existing rows for %s", EXPECTED_YEAR)
