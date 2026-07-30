@@ -1,1 +1,7 @@
+- year: 2026
+  source_file: 2026/Statistical_table_-_Civil_Service_Statistics_2026.ods
+  grade_sheet_name: table_21
+  expected_grade_sheet_title: Table 21: Civil Service employment; responsibility level by government department, as at 31 March 2026 [note 1] [note 2] [note 3]
+  na_values: ["[c]"]
+
 
