@@ -34,9 +34,9 @@ o_vicd_vodg AS (
 SELECT 
     cs_stats_age.id,
     cs_stats_age.year [Year],
+    cs_stats_age.organisation_name [Organisation],
     cs_stats_age.headcount [Headcount],
     cs_stats_age.age [Age],
-    cs_stats_age.organisation_name [Organisation],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
         ELSE o_vicd_vodg.type
