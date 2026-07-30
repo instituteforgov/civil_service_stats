@@ -17,9 +17,7 @@
             - Structure
                 - Sheet title matches expected value
                 - Column headers match EXPECTED_COL_HEADERS
-                - Latest year column matches EXPECTED_YEAR
-                - First data row starts at FIRST_DATA_ROW with measure EXPECTED_FIRST_MEASURE
-                - Note references only appear in the Measure notes column
+                - First data row starts at FIRST_DATA_ROW
             - Data quality
                 - No unused NA values
             - Before appending
@@ -113,7 +111,6 @@ df_grade_str = pd.read_excel(
     engine="odf"
 )
 
-# %%
 # Then read using layout constants defined above to skip non-data rows
 skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
 df_grade = pd.read_excel(
@@ -124,12 +121,12 @@ df_grade = pd.read_excel(
     engine="odf"
 )
 
-#logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 
 # %%
 # Perform structural checks
 # 1: Title
-_sheet_title = str(df_grade_str.iloc[1, 0]).strip() # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
+_sheet_title = str(df_grade_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
 assert _sheet_title == EXPECTED_SHEET_TITLE, (
     f"Unexpected title: {_sheet_title}"
 )
@@ -170,7 +167,7 @@ df_grade = df_grade.rename(columns=col_names)
 
 # Unpivot table
 df_grade = df_grade.melt(
-    id_vars=["parent_department","organisation_name"],
+    id_vars=["parent_department", "organisation_name"],
     var_name="grade",
     value_name="headcount_fte",
     ignore_index=False,
@@ -219,7 +216,6 @@ df_grade.insert(
     resolve_org_id(df_grade, df_orgs, quarter_col="quarter")
 )
 
-# %%
 # %%
 # Append new rows to database
 
