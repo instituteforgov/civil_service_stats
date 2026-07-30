@@ -38,7 +38,6 @@ from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
 from civil_service_stats.utils import resolve_org_id
 
 # %%
-# %%
 # Read in parameters from yaml file
 
 with open("location_params.yaml", encoding="utf-8") as f:
@@ -49,7 +48,7 @@ with open("location_params.yaml", encoding="utf-8") as f:
 
 SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
 SOURCE_FILE = params["source_file"]
-SHEET_NAME = params["grade_sheet_name"]
+SHEET_NAME = params["location_sheet_name"]
 EXPECTED_SHEET_TITLE = params["expected_location_sheet_title"]
 EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
