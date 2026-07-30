@@ -1,5 +1,5 @@
 - year: 2026
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
-  loaction_sheet_name: table_12
+  location_sheet_name: table_12
   expected_location_sheet_title: "Table 12: Civil Service employment; regional distribution by government department on a full-time equivalent (FTE) basis, as at 31 March 2026 [note 1] [note 11] [note 12]"
   na_values: ["[c]"]
