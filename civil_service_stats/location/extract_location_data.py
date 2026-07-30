@@ -130,3 +130,19 @@ df_location = pd.read_excel(
 )
 
 logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+
+# %%
+# Perform structural checks
+# 1: Title
+_sheet_title = str(df_location_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
+assert _sheet_title == EXPECTED_SHEET_TITLE, (
+    f"Unexpected title: {_sheet_title}"
+)
+
+# 2: Column headers
+_actual_headers = df_location_str.iloc[HEADER_ROW].tolist()
+assert _actual_headers == EXPECTED_COL_NAMES, (
+    f"Column headers do not match expected structure. \n"
+    f"  Expected: {EXPECTED_COL_NAMES}\n"
+    f"  Actual: {_actual_headers}"
+)
