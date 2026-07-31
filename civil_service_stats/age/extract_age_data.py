@@ -40,7 +40,7 @@ from civil_service_stats.utils import resolve_org_id
 # %%
 # Read params
 
-with open("age_params.yamls", encoding="utf-8") as f:
+with open("age_params.yaml", encoding="utf-8") as f:
     params = yaml.safe_load(f)[-1]
 
 # %%
@@ -48,8 +48,8 @@ with open("age_params.yamls", encoding="utf-8") as f:
 
 SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
 SOURCE_FILE = params["source_file"]
-SHEET_NAME = params["location_sheet_name"]
-EXPECTED_SHEET_TITLE = params["expected_location_sheet_title"]
+SHEET_NAME = params["age_sheet_name"]
+EXPECTED_SHEET_TITLE = params["expected_age_sheet_title"]
 EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
 
@@ -142,9 +142,8 @@ assert _actual_headers == EXPECTED_COL_NAMES, (
 
 # %%
 # Check unused N/A valus
-
 used_na_vals = {v for v in NA_VALS if (df_age_str == v).any().any()}
-unused_na_vals = [v for v in NA_VALS not in used_na_vals]
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
 assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
 
 logger.info("Passed structural and data quality checks")
@@ -155,7 +154,7 @@ logger.info("Passed structural and data quality checks")
 n_existing = pd.read_sql(
     text(
         """select count(*)
-        from civil_service.civl_service_statistics_age cs_age
+        from civil_service.civil_service_statistics_age cs_age
         where cs_age.year = :year"""
     ),
     con=engine,
@@ -168,3 +167,75 @@ assert n_existing == 0, (
 )
 
 logger.info("Duplicate check passed - no existing rows for %s", EXPECTED_YEAR)
+
+# %%
+# Cleaning and editing
+
+# Edit column names
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "Total",
+    "16-19",
+    "20-29",
+    "30-39",
+    "40-49",
+    "50-59",
+    "60-64",
+    "65 & Over",
+    "Not reported"
+]
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_age = df_age.rename(columns=col_names)
+
+# Unpivot
+df_age = df_age.melt(
+    id_vars=["parent_department", "organisation_name"],
+    var_name="age",
+    value_name="headcount",
+    ignore_index=False
+).sort_index(kind='stable').reset_index(drop=True)
+
+# Get ride of unwanted column and rows
+df_age = df_age.drop(columns=["parent_department"])
+df_age = df_age[~df_age["organisation_name"].str.endswith(" Overall")]
+
+# Get ride of unwanted strings
+delete_str = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)"
+]
+for s in delete_str:
+    df_age["organisation_name"] = df_age["organisation_name"].str.replace(s, "", regex=False)
+
+df_age["organisation_name"] = df_age["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees",
+)
+
+df_age["age"] = df_age["age"].str.replace(
+    "headcount of all civil servants", ""
+)
+
+# Add UUID, year and quarter columns
+df_age.insert(0, 'id', [uuid.uuid4() for i in range(len(df_age))])
+df_age.insert(1, 'year', EXPECTED_YEAR)
+df_age.insert(2, 'quarter', 1)
+
+# Insert org IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_age.insert(
+    df_age.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_age, df_orgs, quarter_col="quarter")
+)
