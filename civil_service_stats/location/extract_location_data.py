@@ -3,7 +3,7 @@
     Purpose
         Extract new CS stats location data and append to database.
     Inputs
-        - yaml: params/grade_releases.yaml
+        - yaml: location_params.yaml
             - Run parameters (source file, sheet names, NA values, year)
         - ods: 'Statistical_tables_-_Civil_Service_Statistics_<yyyy>.ods'
             - Civil Service Statistics source file
