@@ -239,3 +239,24 @@ df_age.insert(
     "organisation_id",
     resolve_org_id(df_age, df_orgs, quarter_col="quarter")
 )
+
+# %%
+# Write to database
+
+df_age.to_sql(
+    name="civil_service_statistics_age",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "organisation_name": NVARCHAR(100),
+        "age": NVARCHAR(20),
+        "headcount": INT
+    }
+)
