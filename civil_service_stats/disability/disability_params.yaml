@@ -1,5 +1,5 @@
 - year: 2026
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
-  age_sheet_name: table_28
-  expected_age_sheet_title: "table 28: Civil Service employment by government department and disability status, as at 31 March 2026 [note 1]"
+  disability_sheet_name: table_28
+  expected_disability_sheet_title: "table 28: Civil Service employment by government department and disability status, as at 31 March 2026 [note 1]"
   na_values: ["[c]"]
