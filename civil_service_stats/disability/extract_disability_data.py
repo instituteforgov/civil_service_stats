@@ -35,7 +35,7 @@ import uuid
 
 from sqlalchemy import INT, NVARCHAR, SMALLINT, text
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from civil_service_stats.utils import resolve_org_id, find_and_replace
+from civil_service_stats.utils import resolve_org_id
 
 # %%
 # Set parameters
@@ -251,3 +251,21 @@ df_disability.insert(
 
 # %%
 # Write to database
+
+df_disability.to_sql(
+    name="civil_service_statistics_disability",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "organisation_name": NVARCHAR(100),
+        "disability_status": NVARCHAR(50),
+        "headcount": INT
+    }
+)
