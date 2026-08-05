@@ -208,6 +208,8 @@ delete_str = [
 for s in delete_str:
     df_age["organisation_name"] = df_age["organisation_name"].str.replace(s, "", regex=False)
 
+df_age["organisation_name"] = df_age["organisation_name"].str.strip()
+
 df_age["organisation_name"] = df_age["organisation_name"].str.replace(
     "Overall Civil Service", "All employees",
 )
@@ -216,6 +218,23 @@ df_age["age"] = df_age["age"].str.replace(
     "headcount of all civil servants", ""
 )
 
+# %%
+# Replace orgs with their respective IfG names
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_age["organisation_name"] = df_age["organisation_name"].str.replace(ifg_names)
+
+# %%
 # Add UUID, year and quarter columns
 df_age.insert(0, 'id', [uuid.uuid4() for i in range(len(df_age))])
 df_age.insert(1, 'year', EXPECTED_YEAR)
