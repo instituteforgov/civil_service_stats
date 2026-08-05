@@ -88,27 +88,3 @@ def add_iteration_suffix(row: pd.Series, col: str) -> str:
             return row[col]
     else:
         return row[col]
-
-# %%
-
-
-def find_and_replace(
-    df: pd.DataFrame,
-    col: str = "organisation_name") -> None:
-    """
-    Find and replace organisation names so that they match the names
-    we have on record in the database. E.g., Medicines and Healthcare Products Regulatory Agency
-    is stored in the research database as Medicines and Healthcare products Regulatory Agency
-    """
-    ifg_names = {
-        "Advisory, Concilliation and Arbitration Service": "Advisory Concilliation and Arbitration Service",
-        "Wilton Park": "Wilton Park Executive agency",
-        "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
-        "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
-        "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
-        "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
-        "UK Export Finance": "Export Credits Guarantee Department",
-        "Water Services Regulation Authority": "Ofwat"
-    }
-
-    df[col] = df[col].replace(ifg_names)
