@@ -2,4 +2,4 @@
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
   ethnicity_sheet_name: table_27
   expected_ethnicity_sheet_title: "table 27: Civil Service employment by government department and ethnicity, as at 31 March 2026 [note 1]"
-  na_values: ["[c], [z]"]
+  na_values: ["[c]", "[z]"]
