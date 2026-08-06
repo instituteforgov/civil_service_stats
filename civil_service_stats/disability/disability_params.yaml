@@ -2,4 +2,4 @@
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
   disability_sheet_name: table_28
   expected_disability_sheet_title: "table 28: Civil Service employment by government department and disability status, as at 31 March 2026 [note 1]"
-  na_values: ["[c]"]
+  na_values: ["[c]", "[z]"]
