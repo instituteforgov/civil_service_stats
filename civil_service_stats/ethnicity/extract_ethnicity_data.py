@@ -48,8 +48,8 @@ with open("ethnicity_params.yaml", encoding="utf-8") as f:
 
 SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
 SOURCE_FILE = params["source_file"]
-SHEET_NAME = params["age_sheet_name"]
-EXPECTED_SHEET_TITLE = params["expected_age_sheet_title"]
+SHEET_NAME = params["ethnicity_sheet_name"]
+EXPECTED_SHEET_TITLE = params["expected_ethnicity_sheet_title"]
 EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
 
@@ -61,12 +61,26 @@ EXPECTED_COL_NAMES = [
     "Civil Service organisation",
     "Headcount of all civil servants declaring to be from a white background",
     "Headcount of all civil servants declaring to be from an ethnic minority background",
-    "Headcount of all civil servants actively declaring they do not wish to disclose their ethnicity",
+    "Headcount of all civil servants actively declaring they do not want to disclose their ethnicity",
     "Headcount of all civil servants who have not made an active declaration about their ethnicity",
+    "Total headcount of all civil servants",
     "Headcount of all civil servants with a known ethnicity",
     "Ethnic minority civil servants as a percentage of known ethnicity",
-    "Total headcount of all civil servants"
 ]
+
+# %%
+# Connect to database
+
+engine = dbo.connect_sql_db(
+    driver="pyodbc",
+    driver_version=os.environ["ODBC_DRIVER"],
+    dialect="mssql",
+    server=os.environ["ODBC_SERVER"],
+    database=os.environ["ODBC_DATABASE"],
+    authentication=os.environ["ODBC_AUTHENTICATION"],
+    username=os.environ["AZURE_CLIENT_ID"],
+    password=os.environ["AZURE_CLIENT_SECRET"],
+)
 
 # %%
 # Set up logging
@@ -131,3 +145,129 @@ unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
 assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
 
 logger.info("Passed structural and data quality checks")
+
+# %%
+# Check for exisitng records in the database
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_ethnicity cs_ethnicity
+        where cs_ethnicity.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} already has {n_existing} rows in the CS Stats age table "
+    "in the database. Remove before re-running or check if release number is correct"
+)
+
+logger.info("Duplicate check passed - no existing rows for %s", EXPECTED_YEAR)
+
+# %%
+# Clean and edit data
+
+# Edit column names
+
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "White",
+    "Ethnic minority",
+    "Not declared",
+    "Not reported",
+    "All employees with a known ethnicity",
+    "All employees",
+    "percentage",
+]
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_ethnicity = df_ethnicity.rename(columns=col_names)
+df_ethnicity = df_ethnicity.drop(columns=["parent_department", "percentage"])
+
+df_ethnicity = df_ethnicity.melt(
+    id_vars=["organisation_name"],
+    var_name="ethnicity",
+    value_name="headcount"
+).sort_index(kind="stable").reset_index(drop=True)
+
+df_ethnicity = df_ethnicity[~df_ethnicity["organisation_name"].str.endswith(" Overall")]
+
+# Delete extraneous strings
+delete_str = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)",
+    "[Note 20]"
+]
+for s in delete_str:
+    df_ethnicity["organisation_name"] = df_ethnicity["organisation_name"].str.replace(s, "", regex=False)
+
+df_ethnicity["organisation_name"] = df_ethnicity["organisation_name"].str.strip()
+
+df_ethnicity["organisation_name"] = df_ethnicity["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+# %%
+# Replace orgs with their respective IfG names
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_ethnicity["organisation_name"] = df_ethnicity["organisation_name"].str.replace(ifg_names)
+
+
+# %%
+# Add UUID, year and quarter columns
+df_ethnicity.insert(0, 'id', [uuid.uuid4() for i in range(len(df_ethnicity))])
+df_ethnicity.insert(1, 'year', EXPECTED_YEAR)
+df_ethnicity.insert(2, 'quarter', 1)
+
+# Insert org IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_ethnicity.insert(
+    df_ethnicity.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_ethnicity, df_orgs, quarter_col="quarter")
+)
+
+# %%
+# Write to database
+
+df_ethnicity.to_sql(
+    name="civil_service_statistics_grade",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "organisation_name": NVARCHAR(100),
+        "ethnicity": NVARCHAR(100),
+        "headcount_fte": INT
+    }
+)
