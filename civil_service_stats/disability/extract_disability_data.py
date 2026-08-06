@@ -120,7 +120,7 @@ df_disability = pd.read_excel(
     engine="odf"
 )
 
-# logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 
 # %%
 # Check structure matches expectation

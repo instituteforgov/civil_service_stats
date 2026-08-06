@@ -1,0 +1,133 @@
+# %%
+"""
+    Purpose
+        Extract new CS stats ethnicity data and append to database.
+    Inputs
+        - yaml: ethnicity_params.yaml
+            - Run parameters (source file, sheet names, NA values, year)
+        - ods: 'Statistical_tables_-_Civil_Service_Statistics_<yyyy>.ods'
+            - Civil Service Statistics source file
+    Outputs
+        - sql: civil_service.civil_service_statistics_age
+            - Rows corresponding to most recent year's data appended
+    Notes
+        - New data is appended to the database table, rather than existing rows being modified
+        - Run parameters are loaded from params/releases.yaml (last entry used)
+        - Carries out the following checks on data:
+            - Structure
+                - Sheet title matches expected value
+                - Column headers match EXPECTED_COL_HEADERS
+                - First data row starts at FIRST_DATA_ROW
+            - Data quality
+                - No unused NA values
+            - Before appending
+                - No existing rows in the database for the new year
+"""
+
+import logging
+import os
+from pathlib import Path
+
+import ds_utils.database_operations as dbo
+import pandas as pd
+import yaml
+import uuid
+
+from sqlalchemy import INT, NVARCHAR, SMALLINT, text
+from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
+from civil_service_stats.utils import resolve_org_id
+
+# %%
+# Read params
+
+with open("ethnicity_params.yaml", encoding="utf-8") as f:
+    params = yaml.safe_load(f)[-1]
+
+# %%
+# Set constants
+
+SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
+SOURCE_FILE = params["source_file"]
+SHEET_NAME = params["age_sheet_name"]
+EXPECTED_SHEET_TITLE = params["expected_age_sheet_title"]
+EXPECTED_YEAR = params["year"]
+NA_VALS = params["na_values"]
+
+# Define expected table layout
+HEADER_ROW = 6
+FIRST_DATA_ROW = 7
+EXPECTED_COL_NAMES = [
+    "Civil Service parent department",
+    "Civil Service organisation",
+    "Headcount of all civil servants declaring to be from a white background",
+    "Headcount of all civil servants declaring to be from an ethnic minority background",
+    "Headcount of all civil servants actively declaring they do not wish to disclose their ethnicity",
+    "Headcount of all civil servants who have not made an active declaration about their ethnicity",
+    "Headcount of all civil servants with a known ethnicity",
+    "Ethnic minority civil servants as a percentage of known ethnicity",
+    "Total headcount of all civil servants"
+]
+
+# %%
+# Set up logging
+
+_log_dir = Path(os.environ["LOCALAPPDATA"]) / "civil_service_stats" / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(_log_dir / "extract_ethnicity_data.log", encoding="utf-8"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+# %%
+# Load latest data release
+source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Initial read as strings to allow structural checks against params
+df_ethnicity_str = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Then read using layout constants defined above to skip non-data rows
+skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
+df_ethnicity = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    skiprows=skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+
+# %%
+# Check structure matches expectation
+# 1: Title
+_sheet_title = str(df_ethnicity_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
+assert _sheet_title == EXPECTED_SHEET_TITLE, (
+    f"Unexpected title: {_sheet_title}"
+)
+
+# 2: Column headers
+_actual_headers = df_ethnicity_str.iloc[HEADER_ROW].tolist()
+assert _actual_headers == EXPECTED_COL_NAMES, (
+    f"Column headers do not match expected structure. \n"
+    f"  Expected: {EXPECTED_COL_NAMES}\n"
+    f"  Actual: {_actual_headers}"
+)
+
+# %%
+# Check unused N/A valus
+used_na_vals = {v for v in NA_VALS if (df_ethnicity_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
+assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
+
+logger.info("Passed structural and data quality checks")
