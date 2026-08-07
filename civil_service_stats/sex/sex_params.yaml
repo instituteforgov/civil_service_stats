@@ -1,0 +1,5 @@
+- year: 2026
+  source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
+  sex_sheet_name: table_22
+  expected_sex_sheet_title: "Table 22: Civil Service employment by responsibility level, government department and sex, as at 31 March 2026 [note 1] [note 2] [note 3] [note 4] [note 27]"
+  na_values: ["[c]"]
