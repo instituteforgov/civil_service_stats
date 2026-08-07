@@ -44,7 +44,7 @@ with open('sex_params.yaml') as f:
     params = yaml.safe_load(f)[-1]
 
 # %%
-# Set constants 
+# Set constants
 
 SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
 SOURCE_FILE = params["source_file"]
@@ -104,8 +104,171 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[
-        logging.FileHandler(_log_dir / "extract_ethnicity_data.log", encoding="utf-8"),
+        logging.FileHandler(_log_dir / "extract_sex_data.log", encoding="utf-8"),
         logging.StreamHandler(),
     ],
 )
 logger = logging.getLogger(__name__)
+
+# %%
+# Load latest data
+source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Initial read as strings
+df_sex_str = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Full read with structural constants
+skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1,FIRST_DATA_ROW))
+df_sex = pd.read_excel(
+    source_filepath,
+    sheet_name=SHEET_NAME,
+    skiprows=skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
+
+# %%
+# Perform structural checks
+# 1: Title
+_sheet_tile = str(df_sex_str.iloc[1, 0]).strip() # Title is in row 1, not row 0
+assert _sheet_tile == EXPECTED_SHEET_TITLE, (
+    F"Unexpected title: {_sheet_tile}"
+)
+
+# 2: Col headers
+_actual_headers = df_sex_str.iloc[HEADER_ROW].tolist()
+assert _actual_headers == EXPECTED_COL_NAMES, (
+    f"Column headers do not match expected structure. \n"
+    f"  Expected: {EXPECTED_COL_NAMES}\n"
+    f"  Actual: {_actual_headers}"    
+)
+
+# %%
+# Check for unused N/A values
+used_na_vals = {v for v in NA_VALS if (df_sex_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
+assert unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
+
+logger.info("Passed structural and data quality checks")
+
+# %%
+# Check for exisitng records in the database
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_sex cs_sex
+        where cs_sex.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} already has {n_existing} rows in the CS Stats age table "
+    "in the database. Remove before re-running or check if release number is correct"
+)
+
+logger.info("Duplicate check passed - no existing rows for %s", EXPECTED_YEAR)
+
+# %%
+# Clean and edit data
+
+# Drop "unknown sex' columns"
+df_sex = df_sex.drop(
+    columns=[s for s in EXPECTED_COL_NAMES if "unknown sex" in s]
+    )
+
+# Edit column names
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "Senior Civil Service level - Male",
+    "Grades 6 and 7 - Male",
+    "Senior and Higher Executive Officers - Male",
+    "Executive Officers - Male",
+    "Administrative Officers and Assistants - Male",
+    "Not reported - Male"
+    "Senior Civil Service level - Female",
+    "Grades 6 and 7 - Female",
+    "Senior and Higher Executive Officers - Female",
+    "Executive Officers - Female",
+    "Administrative Officers and Assistants - Female",
+    "Not reported - Female"
+]
+col_names = dict(zip(df_sex.columns, new_names))
+df_sex = df_sex.rename(columns=col_names)
+df_sex = df_sex.drop(columns=["parent_department"])
+
+df_sex = df_sex.melt(
+    id_vars=["organisation_name"],
+    var_name="sex_and_grade",
+    value_name="headcount"
+).sort_index(kind="stable").reset_index(drop=True)
+
+df_sex = df_sex[~df_sex["organisation_name"].endswith(" Overall")]
+
+# Delete unwanted strings
+delete_str = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)"
+]
+for s in delete_str:
+    df_sex["organisation_name"] = df_sex["organisation_name"].str.replace(s, "", regex=False)
+
+df_sex["organisation_name"] = df_sex["organisation_name"].str.strip()
+
+
+df_sex["organisation_name"] = df_sex["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+# %%
+# Replace orgs with their respective IfG names
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_sex["organisation_name"] = df_sex["organisation_name"].str.replace(ifg_names)
+
+# %%
+# Add UUID, year and quarter columns
+df_sex.insert(0, 'id', [uuid.uuid4() for i in range(len(df_sex))])
+df_sex.insert(1, 'year', EXPECTED_YEAR)
+df_sex.insert(2, 'quarter', 1)
+
+# Insert org IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_sex.insert(
+    df_sex.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_sex, df_orgs, quarter_col="quarter")
+)
+
