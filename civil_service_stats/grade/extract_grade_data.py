@@ -273,7 +273,7 @@ df_grade.to_sql(
         "organisation_id": UNIQUEIDENTIFIER,
         "year": SMALLINT,
         "organisation_name": NVARCHAR(100),
-        "age": NVARCHAR(20),
+        "grade": NVARCHAR(100),
         "headcount_fte": INT
     }
 )
