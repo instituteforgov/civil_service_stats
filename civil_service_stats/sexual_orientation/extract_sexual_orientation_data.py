@@ -247,7 +247,7 @@ orientation_order = [
 org_order = list(dict.fromkeys(df_s_o["organisation_name"]))
 
 df_s_o["organisation_name"] = pd.Categorical(df_s_o["organisation_name"], categories=org_order, ordered=True)
-df_s_o["sex_and_grade"] = pd.Categorical(df_s_o["sexual_orientation"], categories=orientation_order, ordered=True)
+df_s_o["sexual_orientation"] = pd.Categorical(df_s_o["sexual_orientation"], categories=orientation_order, ordered=True)
 df_s_o = df_s_o.sort_values(["organisation_name", "sexual_orientation"]).reset_index(drop=True)
 
 
@@ -278,4 +278,22 @@ df_s_o.insert(
 )
 
 # %%
-df_s_o[df_s_o["organisation_id"].isna()]
+# Write to db
+
+df_s_o.to_sql(
+    name="civil_service_statistics_sexual_orientation",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "organisation_name": NVARCHAR(100),
+        "sexual_orientation": NVARCHAR(60),
+        "headcount": INT
+    }
+)
