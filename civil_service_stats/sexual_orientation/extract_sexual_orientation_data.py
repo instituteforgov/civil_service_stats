@@ -40,7 +40,7 @@ from civil_service_stats.utils import resolve_org_id
 # %%
 # Set params
 
-with open('sex_params.yaml') as f:
+with open('sexual_orientation_params.yaml') as f:
     params = yaml.safe_load(f)[-1]
 
 # %%
@@ -201,7 +201,7 @@ df_s_o = df_s_o[~df_s_o["organisation_name"].str.endswith(" Overall")]
 # Delete unwanted strings
 delete_str = [
     "(excl. agencies)",
-    "(incl. Office of the Advocate General for Scotland)"
+    "(incl. Office of the Advocate General for Scotland)",
     "[Note 20]"
 ]
 for s in delete_str:
@@ -231,6 +231,27 @@ ifg_names = {
 df_s_o["organisation_name"] = df_s_o["organisation_name"].str.replace(ifg_names)
 
 # %%
+# Fix row ordering
+
+orientation_order = [
+    "Bisexual",
+    "Gay/Lesbian",
+    "Heterosexual/Straight",
+    "Other",
+    "Not declared",
+    "Not reported",
+    "All employees"
+]
+
+# dict.fromkeys preserves first-occurrence order and drops duplicates
+org_order = list(dict.fromkeys(df_s_o["organisation_name"]))
+
+df_s_o["organisation_name"] = pd.Categorical(df_s_o["organisation_name"], categories=org_order, ordered=True)
+df_s_o["sex_and_grade"] = pd.Categorical(df_s_o["sexual_orientation"], categories=orientation_order, ordered=True)
+df_s_o = df_s_o.sort_values(["organisation_name", "sexual_orientation"]).reset_index(drop=True)
+
+
+# %%
 # Add info
 
 df_s_o.insert(0, 'id', [uuid.uuid4() for j in range(len(df_s_o))])
@@ -255,3 +276,6 @@ df_s_o.insert(
     "organisation_id",
     resolve_org_id(df_s_o, df_orgs, quarter_col="quarter")
 )
+
+# %%
+df_s_o[df_s_o["organisation_id"].isna()]
