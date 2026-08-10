@@ -221,7 +221,7 @@ df_sex = df_sex[~df_sex["organisation_name"].str.endswith(" Overall")]
 # Delete unwanted strings
 delete_str = [
     "(excl. agencies)",
-    "(incl. Office of the Advocate General for Scotland)"
+    "(incl. Office of the Advocate General for Scotland)",
     "[Note 20]"
 ]
 for s in delete_str:
