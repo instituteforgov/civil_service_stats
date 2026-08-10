@@ -1,5 +1,5 @@
 - year: 2026
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
   sexual_orientation_sheet_name: table_A1
-  expected_sexual_orientation_sheet_title: "Table A1: Civil Service employment by sexual orientation and department, as at 31 March 2026 [note 1] [note 2] [note 3] [note 4] [note 27]"
+  expected_sexual_orientation_sheet_title: "Table A1: Civil Service employment by sexual orientation and department, as at 31 March 2026 [note 1]"
   na_values: ["[c]", "[z]"]
