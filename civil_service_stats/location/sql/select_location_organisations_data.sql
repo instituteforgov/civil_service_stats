@@ -62,4 +62,7 @@ FROM cs_stats_location
         o_vicd_vodg.id = vol1.organisation_id 
     LEFT JOIN civil_service.vw_organisation_latest vol2 ON
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
-
+ORDER BY
+    cs_stats_location.year,
+    cs_stats_location.organisation_name,
+    cs_stats_location.region
