@@ -222,7 +222,7 @@ df_faith["organisation_name"] = df_faith["organisation_name"].str.replace(
 )
 
 # %%
-# Replace orgs with the in-house IfG names 
+# Replace orgs with the in-house IfG names
 
 ifg_names = {
     "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
