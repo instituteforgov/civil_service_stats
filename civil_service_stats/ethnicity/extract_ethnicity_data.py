@@ -255,7 +255,7 @@ df_ethnicity.insert(
 # Write to database
 
 df_ethnicity.to_sql(
-    name="civil_service_statistics_grade",
+    name="civil_service_statistics_ethnicity",
     con=engine,
     schema="civil_service",
     if_exists="append",
