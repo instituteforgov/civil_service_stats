@@ -248,6 +248,7 @@ rel_order = [
     "Muslim",
     "Sikh",
     "Any other religion",
+    "No religion",
     "Not declared",
     "Not reported",
     "All employees"
@@ -256,7 +257,7 @@ rel_order = [
 org_order = list(dict.fromkeys(df_faith["organisation_name"]))
 
 df_faith["organisation_name"] = pd.Categorical(df_faith["organisation_name"], categories=org_order, ordered=True)
-df_faith["reilgion_or_belief"] = pd.Categorical(df_faith["religion_or_belief"], categories=rel_order, ordered=True)
+df_faith["religion_or_belief"] = pd.Categorical(df_faith["religion_or_belief"], categories=rel_order, ordered=True)
 df_faith = df_faith.sort_values(["organisation_name", "religion_or_belief"]).reset_index(drop=True)
 
 # %%
@@ -286,10 +287,13 @@ df_faith.insert(
 )
 
 # %%
+df_faith
+
+# %%
 # Write to db
 
 df_faith.to_sql(
-    name="civil_service_statistics_sexual_orientation",
+    name="civil_service_statistics_faith",
     con=engine,
     schema="civil_service",
     if_exists="append",
