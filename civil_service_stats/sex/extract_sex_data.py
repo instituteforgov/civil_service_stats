@@ -206,7 +206,7 @@ new_names = [
 ]
 col_names = dict(zip(df_sex.columns, new_names))
 df_sex = df_sex.rename(columns=col_names)
-df_sex = df_sex.drop(columns=["parent_department", "All employees - Male", "All employees - Female"])
+df_sex = df_sex.drop(columns=["parent_department"])
 
 df_sex = df_sex.melt(
     id_vars=["organisation_name"],
@@ -255,17 +255,19 @@ df_sex["organisation_name"] = df_sex["organisation_name"].str.replace(ifg_names)
 
 grade_sex_order = [
     "Senior Civil Service level - Male",
-    "Senior Civil Service level - Female",
     "Grades 6 and 7 - Male",
-    "Grades 6 and 7 - Female",
     "Senior and Higher Executive Officers - Male",
-    "Senior and Higher Executive Officers - Female",
     "Executive Officers - Male",
-    "Executive Officers - Female",
     "Administrative Officers and Assistants - Male",
-    "Administrative Officers and Assistants - Female",
     "Not reported - Male",
+    "All employees - Male",
+    "Senior Civil Service level - Female",
+    "Grades 6 and 7 - Female",
+    "Senior and Higher Executive Officers - Female",
+    "Executive Officers - Female",
+    "Administrative Officers and Assistants - Female",
     "Not reported - Female",
+    "All employees - Female"
 ]
 
 # dict.fromkeys preserves first-occurrence order and drops duplicates
