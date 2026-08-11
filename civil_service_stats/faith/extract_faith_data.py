@@ -54,8 +54,8 @@ EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
 
 # Define expected table layout
-HEADER_ROW = 6
-FIRST_DATA_ROW = 7
+HEADER_ROW = 5
+FIRST_DATA_ROW = 6
 EXPECTED_COL_NAMES = [
     "Civil Service parent department",
     "Civil Service organisation",
@@ -160,10 +160,148 @@ n_existing = pd.read_sql(
         where cs_faith.year = :year"""
     ),
     con=engine,
-    params=["year": EXPECTED_YEAR]
+    params={"year": EXPECTED_YEAR}
 ).iloc[0, 0]
 
 assert n_existing == 0, (
     f"{EXPECTED_YEAR} already has {n_existing} record in the CS stats faith table. "
     "Remove before re-running or check you're uploading the correct data release"
+)
+# %%
+
+type(df_faith)
+
+# %%
+# clean data
+
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "Christian",
+    "Buddhist",
+    "Hindu",
+    "Jewish",
+    "Muslim",
+    "Sikh",
+    "Any other religion",
+    "No religion",
+    "Not declared",
+    "Not reported",
+    "All employees",
+    "all_known",
+    "percentage"
+]
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_faith = df_faith.rename(columns=col_names)
+df_faith = df_faith.drop(columns=[
+    "parent_department", "all_known", "percentage"
+])
+
+# Unpivot data
+df_faith = df_faith.melt(
+    id_vars=["organisation_name"],
+    var_name="religion_or_belief",
+    value_name="headcount"
+).sort_index(kind="stable").reset_index(drop=True)
+
+# Filter out overall departmental figures
+df_faith = df_faith[~df_faith["organisation_name"].str.endswith(" Overall")]
+
+# Delete unwanted strings
+delete_str = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)",
+    "[Note 20]"
+]
+for s in delete_str:
+    df_faith["organisation_name"] = df_faith["organisation_name"].str.replace(s, "", regex=False)
+df_faith["organisation_name"] = df_faith["organisation_name"].str.strip()
+
+df_faith["organisation_name"] = df_faith["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+# %%
+# Replace orgs with the in-house IfG names 
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_faith["organisation_name"] = df_faith["organisation_name"].str.replace(ifg_names)
+
+# %%
+# Fix row ordering
+
+rel_order = [
+    "Christian",
+    "Buddhist",
+    "Hindu",
+    "Jewish",
+    "Muslim",
+    "Sikh",
+    "Any other religion",
+    "Not declared",
+    "Not reported",
+    "All employees"
+]
+
+org_order = list(dict.fromkeys(df_faith["organisation_name"]))
+
+df_faith["organisation_name"] = pd.Categorical(df_faith["organisation_name"], categories=org_order, ordered=True)
+df_faith["reilgion_or_belief"] = pd.Categorical(df_faith["religion_or_belief"], categories=rel_order, ordered=True)
+df_faith = df_faith.sort_values(["organisation_name", "religion_or_belief"]).reset_index(drop=True)
+
+# %%
+# Add info
+
+df_faith.insert(0, "id", [uuid.uuid4() for x in range(len(df_faith))])
+df_faith.insert(1, "year", EXPECTED_YEAR),
+df_faith.insert(2, "quarter", 1)
+
+# Match IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_faith.insert(
+    df_faith.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_faith, df_orgs, quarter_col="quarter")
+)
+
+# %%
+# Write to db
+
+df_faith.to_sql(
+    name="civil_service_statistics_sexual_orientation",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "organisation_name": NVARCHAR(100),
+        "religion_or_belief": NVARCHAR(60),
+        "headcount": INT
+    }
 )
