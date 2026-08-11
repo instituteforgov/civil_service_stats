@@ -102,3 +102,68 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+# %%
+# Load latest data
+source = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
+
+# Read as strings
+df_faith_str = pd.read_excel(
+    source,
+    sheet_name=SHEET_NAME,
+    header=None,
+    dtype=str,
+    engine="odf"
+)
+
+# Full read
+_skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
+df_faith = pd.read_excel(
+    source,
+    sheet_name=SHEET_NAME,
+    skiprows=_skip_rows,
+    na_values=NA_VALS,
+    engine="odf"
+)
+
+# %%
+# perform structural checks
+
+_sheet_title = str(df_faith_str.iloc[1, 0]).strip()
+assert _sheet_title == EXPECTED_SHEET_TITLE, (
+    f"Unexpected title: {_sheet_title}"
+)
+
+_headers = df_faith_str.iloc[HEADER_ROW].tolist()
+assert _headers == EXPECTED_COL_NAMES, (
+    f"Columns ehaders do not  match expected structure. \n"
+    f" Expected: {EXPECTED_COL_NAMES}\n"
+    f" Actual: {_headers}"
+    )
+
+# %%
+# Check n/a values
+
+used_na_vals = {v for v in NA_VALS if (df_faith_str == v).any().any()}
+unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
+assert not unused_na_vals, f"Unused N/A values (remove from parameters): {unused_na_vals}"
+
+logger.info("Passe structural and data quality checks")
+
+# %%
+# Check whether data exists for this year in the database
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_faith as cs_faith
+        where cs_faith.year = :year"""
+    ),
+    con=engine,
+    params=["year": EXPECTED_YEAR]
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} already has {n_existing} record in the CS stats faith table. "
+    "Remove before re-running or check you're uploading the correct data release"
+)
