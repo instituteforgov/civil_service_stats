@@ -64,4 +64,4 @@ FROM cs_stats_pay
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
 ORDER BY 
     cs_stats_pay.year,
-    cs_stats_pay.organisation_id
+    cs_stats_pay.organisation_name
