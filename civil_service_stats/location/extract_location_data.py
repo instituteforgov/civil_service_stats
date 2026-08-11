@@ -8,7 +8,7 @@
         - ods: 'Statistical_tables_-_Civil_Service_Statistics_<yyyy>.ods'
             - Civil Service Statistics source file
     Outputs
-        - sql: civil_service.civil_service_statistics_grade
+        - sql: civil_service.civil_service_statistics_location
             - Rows corresponding to most recent year's data appended
     Notes
         - New data is appended to the database table, rather than existing rows being modified
