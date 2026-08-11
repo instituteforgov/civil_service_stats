@@ -40,7 +40,7 @@ from civil_service_stats.utils import resolve_org_id
 # %%
 
 with open("pay_params.yaml") as f:
-    params  = yaml.SafeLoader_load(f)[-1]
+    params = yaml.safe_load(f)[-1]
 
 # %%
 # Constants
@@ -102,8 +102,9 @@ source_filepath = f"{SOURCE_DIRECTORY}/{SOURCE_FILE}"
 # Read file as strings
 df_pay_str = pd.read_excel(
     source_filepath,
+    sheet_name=SHEET_NAME,
     header=None,
-    dtype=str,#
+    dtype=str,
     engine="odf"
 )
 
@@ -111,6 +112,7 @@ df_pay_str = pd.read_excel(
 _skip_rows = list(range(HEADER_ROW)) + list(range(HEADER_ROW + 1, FIRST_DATA_ROW))
 df_pay = pd.read_excel(
     source_filepath,
+    sheet_name=SHEET_NAME,
     skiprows=_skip_rows,
     na_values=NA_VALS,
     engine="odf"
@@ -120,7 +122,7 @@ logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 
 # %%
 # Check structure
-_sheet_title = str(df_pay_str.iloc[1, 0]).strip()  # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
+_sheet_title = str(df_pay_str.iloc[1, 0]).strip()   # Sheet title is in row 1 not row 0 ([0,0] is 'Back to contents')
 assert _sheet_title == EXPECTED_SHEET_TITLE, (
     f"Unexpected title: {_sheet_title}"
 )
@@ -140,4 +142,127 @@ used_na_vals = {v for v in NA_VALS if (df_pay_str == v).any().any()}
 unused_na_vals = [v for v in NA_VALS if v not in used_na_vals]
 assert not unused_na_vals, f"Unused NA values (remove from params): {unused_na_vals}"
 
+# %%
+# Check for existing records
+
+n_existing = pd.read_sql(
+    text(
+        """select count(*)
+        from civil_service.civil_service_statistics_pay cs_pay
+        where cs_pay.year = :year"""
+    ),
+    con=engine,
+    params={"year": EXPECTED_YEAR}
+).iloc[0, 0]
+
+assert n_existing == 0, (
+    f"{EXPECTED_YEAR} already has {n_existing} rows in database."
+    "Remove before re-running or check data release edition"
+)
+
 logger.info("Passed structure and data quality checks")
+
+# %%
+# Clean and edit data
+
+new_names = [
+    "parent_department",
+    "organisation_name",
+    "SCS",
+    "G6/7",
+    "SEO/HEO",
+    "EO",
+    "AO/AA",
+    "Unreported",
+    "All employees"
+]
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_pay = df_pay.rename(columns=col_names)
+
+# Unpivot
+df_pay = df_pay.melt(
+    id_vars=["parent_department", "organisation_name"],
+    var_name="grade",
+    value_name="median_salary",
+    ignore_index=False
+).sort_index(kind="stable").reset_index(drop=True)
+
+df_pay = df_pay.drop(columns=["parent_department"])
+
+df_pay = df_pay[~df_pay["organisation_name"].str.endswith(" Overall")]
+
+# Delete unwanted strings
+delete = [
+    "(excl. agencies)",
+    "(incl. Office of the Advocate General for Scotland)"
+]
+for s in delete:
+    df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(s, "", regex=False)
+
+df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(
+    "Overall Civil Service", "All employees"
+)
+
+df_pay["organisation_name"] = df_pay["organisation_name"].str.strip()
+
+# %%
+# Replace orgs with IfG names
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(ifg_names)
+
+# Add UUID, year and quarter columns
+df_pay.insert(0, 'id', [uuid.uuid4() for i in range(len(df_pay))])
+df_pay.insert(1, 'year', EXPECTED_YEAR)
+df_pay.insert(2, 'quarter', 1)
+
+# Insert org IDs
+df_orgs = pd.read_sql(
+    """select
+        o.id,
+        o.name,
+        o.start_year,
+        o.start_quarter,
+        o.end_year,
+        o.end_quarter
+    from civil_service.organisation o""",
+    engine,
+)
+
+df_pay.insert(
+    df_pay.columns.get_loc("organisation_name"),
+    "organisation_id",
+    resolve_org_id(df_pay, df_orgs, quarter_col="quarter")
+)
+
+# %%
+
+df_pay.to_sql(
+    name="civil_service_statistics_pay",
+    con=engine,
+    schema="civil_service",
+    if_exists="append",
+    index=False,
+    chunksize=3000,
+    dtype={
+        "id": UNIQUEIDENTIFIER,
+        "quarter": TINYINT,
+        "organisation_id": UNIQUEIDENTIFIER,
+        "year": SMALLINT,
+        "organisation_name": NVARCHAR(100),
+        "grade": NVARCHAR(100),
+        "median_salary": INT
+    }
+)
+
+# %%
