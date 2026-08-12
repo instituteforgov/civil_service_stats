@@ -120,3 +120,27 @@ def resolve_profession_id(
         )
     )
     return merged.set_index("_orig_idx")["id"].reindex(df.index)
+
+# %%
+
+
+def resolve_function_id(
+    df: pd.DataFrame,
+    df_function: pd.DataFrame,
+    function_col: str = "function",
+) -> pd.Series:
+    """
+    As above, but for functions
+    """
+    merged = (
+        df[[function_col]]
+        .rename_axis("_orig_idx")
+        .reset_index()
+        .merge(
+            df_function[["id", "function"]],
+            left_on=function_col,
+            right_on="function",
+            how="left",
+        )
+    )
+    return merged.set_index("_orig_idx")["id"].reindex(df.index)
