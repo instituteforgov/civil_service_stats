@@ -3,6 +3,10 @@ WITH cs_stats_professions AS (
     SELECT *, year * 4 + 1 survey_period
     FROM civil_service.civil_service_statistics_professions
 ),
+profession_lookup AS (
+    SELECT id, profession_name, profession_group, profession_category, government_classification
+    FROM civil_service.professions_mapping
+),
 o_vicd_vodg AS (
     SELECT
         o.id,
@@ -32,9 +36,9 @@ SELECT
     cs_stats_professions.organisation_name [Organisation],
     cs_stats_professions.profession [Profession],
     cs_stats_professions.headcount_fte [FTE],
-    cs_stats_professions.profession_group [Profession group],
-    cs_stats_professions.profession_category [Profession category],
-    cs_stats_professions.government_classification [Government classification],
+    profession_lookup.profession_group [Profession group],
+    profession_lookup.profession_category [Profession category],
+    profession_lookup.government_classification [Government classification],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
         ELSE o_vicd_vodg.type
@@ -65,3 +69,5 @@ FROM cs_stats_professions
         o_vicd_vodg.id = vol1.organisation_id 
     LEFT JOIN civil_service.vw_organisation_latest vol2 ON
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
+    LEFT JOIN profession_lookup ON
+        cs_stats_professions.profession_id = profession_lookup.id
