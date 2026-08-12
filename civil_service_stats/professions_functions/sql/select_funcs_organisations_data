@@ -3,6 +3,10 @@ WITH cs_stats_functions AS (
     SELECT *, year * 4 + 1 survey_period
     FROM civil_service.civil_service_statistics_functions
 ),
+function_lookup AS (
+    SELECT id, function_name, function_group
+    FROM civil_service.functions_mapping
+),
 o_vicd_vodg AS (
     SELECT
         o.id,
@@ -32,7 +36,7 @@ SELECT
     cs_stats_functions.organisation_name [Organisation],
     cs_stats_functions.[function] [Function],
     cs_stats_functions.headcount_fte [FTE],
-    cs_stats_functions.function_group [Function group],
+    function_lookup.function_group [Function group],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
         ELSE o_vicd_vodg.type
@@ -63,3 +67,5 @@ FROM cs_stats_functions
         o_vicd_vodg.id = vol1.organisation_id 
     LEFT JOIN civil_service.vw_organisation_latest vol2 ON
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
+    LEFT JOIN function_lookup ON
+        cs_stats_functions.function_id = function_lookup.id
