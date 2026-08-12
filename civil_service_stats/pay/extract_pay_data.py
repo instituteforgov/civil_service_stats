@@ -264,5 +264,3 @@ df_pay.to_sql(
         "median_salary": INT
     }
 )
-
-# %%
