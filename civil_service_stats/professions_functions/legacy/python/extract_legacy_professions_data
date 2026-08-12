@@ -58,7 +58,7 @@ df_profs = df_profs.rename(columns={"organisation": "organisation_name", "fte": 
 df_profs["organisation_name"] = df_profs["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
 
 # %%
-# Insert org IDs from DB
+# Insert org and profession IDs from DB
 
 df_orgs = pd.read_sql(
     """select
