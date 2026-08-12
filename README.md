@@ -30,12 +30,15 @@ Below is a generalised view of the structure of the repository. `<dataset>` belo
 └── README.md
 ```
 
+`professions_and_functions` has an additional subfolder `mappings` which contains two scripts, `profession_mapping` and `function_mapping` which extracts the IfG's in-house system of categorisation for professions and functions and writes them to the database. This is then used by `select_[professions]/[functions]_organisations_data.sql` to insert the correct category back in, rather than calculating it in the Excel file.
+
 ## Scripts 
 
 | File | Description |
 | ---- | ----------- |
 | `select_<dataset>_organisations_data.sql` | Augments organisations data and re-inserts into Excel file. Same as `compare_<dataset>_organisation_data.sql` but with following small changes: <ul><li><strong>IfG core department</strong>: Added</li><li><strong>Latest organisation</strong>: Latest actual organisation always reported, rather than latest determinate organisation</li><li><strong>Latest departmental group</strong>: Latest actual (IfG) departmental group always reported, rather than latest determinate organisation</li></ul> |
 | `extract_<dataset>_data.py` | Reads data from the most recent Civil Service Statistics release and appends to research database |
+| `<dataset>_params.yaml` | Dataset-specific parameters for a given year's data release, used by `extract_<dataset>_data.py` to parse source Excel file|
 
 ## Legacy scripts
 
