@@ -88,3 +88,35 @@ def add_iteration_suffix(row: pd.Series, col: str) -> str:
             return row[col]
     else:
         return row[col]
+
+# %%
+
+
+def resolve_profession_id(
+    df: pd.DataFrame,
+    df_profession: pd.DataFrame,
+    profession_col: str = "profession",
+) -> pd.Series:
+    """Return a Series of profession UUIDs matched by profession name.
+
+    Args:
+        df: Source DataFrame containing the rows to resolve.
+        df_profession: Reference DataFrame with columns id and profession.
+        profession_col: Column in df containing the profession name.
+
+    Returns:
+        Series indexed like df, with the resolved UUID where a match was found,
+        and NaN where unresolvable.
+    """
+    merged = (
+        df[[profession_col]]
+        .rename_axis("_orig_idx")
+        .reset_index()
+        .merge(
+            df_profession[["id", "profession"]],
+            left_on=profession_col,
+            right_on="profession",
+            how="left",
+        )
+    )
+    return merged.set_index("_orig_idx")["id"].reindex(df.index)
