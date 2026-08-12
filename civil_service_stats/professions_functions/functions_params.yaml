@@ -1,0 +1,5 @@
+- year: 2026
+  source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
+  functions_sheet_name: table_D2
+  expected_functions_sheet_title: "Table D2: Civil Service employment; function by government department on a full-time equivalent (FTE) basis, as at 31 March 2026 [note 1]"
+  na_values: ["[c]"]
