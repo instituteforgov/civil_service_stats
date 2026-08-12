@@ -7,7 +7,7 @@ import os
 
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from civil_service_stats.utils import resolve_org_id
+from civil_service_stats.utils import resolve_org_id, resolve_function_id
 
 # %%
 # Set constants
@@ -40,6 +40,7 @@ df_funcs = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 # Drop calculated columns
 df_funcs = df_funcs.drop(columns=[
     "Release number",
+    "Function group",
     "Departmental group",
     "Organisation type",
     "Managed",
@@ -76,6 +77,18 @@ df_funcs.insert(
     df_funcs.columns.get_loc("organisation_name"),
     "organisation_id",
     resolve_org_id(df_funcs, df_orgs, quarter_col="quarter")
+)
+
+df_functions = pd.read_sql(
+    "SELECT id, function_name AS [function] "
+    "FROM civil_service.functions_mapping",
+    con=engine
+)
+
+df_funcs.insert(
+    df_funcs.columns.get_loc("function"),
+    "function_id",
+    resolve_function_id(df_funcs, df_functions)
 )
 
 # %%
