@@ -113,4 +113,3 @@ df_profs.to_sql(
         "headcount_fte": INT,
     }
 )
-
