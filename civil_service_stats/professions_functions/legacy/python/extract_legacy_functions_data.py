@@ -109,6 +109,5 @@ df_funcs.to_sql(
         "organisation_name": NVARCHAR(100),
         "function": NVARCHAR(50),
         "headcount_fte": INT,
-        "function_group": NVARCHAR(100),
     }
 )

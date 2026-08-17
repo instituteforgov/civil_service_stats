@@ -69,3 +69,7 @@ FROM cs_stats_functions
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
     LEFT JOIN function_lookup ON
         cs_stats_functions.function_id = function_lookup.id
+ORDER BY 
+    cs_stats_functions.year,
+    cs_stats_functions.organisation_name,
+    cs_stats_functions.[function]
