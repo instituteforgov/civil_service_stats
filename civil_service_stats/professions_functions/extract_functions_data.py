@@ -41,7 +41,7 @@ from civil_service_stats.utils import resolve_org_id, resolve_function_id
 # Set parameters
 
 with open("functions_params.yaml") as f:
-    params = yaml.safe_read(f)[-1]
+    params = yaml.safe_load(f)[-1]
 
 # %%
 # Constants
@@ -63,7 +63,7 @@ EXPECTED_COL_NAMES = [
     "Full-time equivalent (FTE) of all civil servants working in the Commercial function",
     "Full-time equivalent (FTE) of all civil servants working in the Communications function",
     "Full-time equivalent (FTE) of all civil servants working in the Counter Fraud function",
-    "Full-time equivalent (FTE) of all civil servants working in the Debt function,"
+    "Full-time equivalent (FTE) of all civil servants working in the Debt function",
     "Full-time equivalent (FTE) of all civil servants working in the Digital and Data function",
     "Full-time equivalent (FTE) of all civil servants working in the Finance function",
     "Full-time equivalent (FTE) of all civil servants working in the Grants function",
@@ -142,8 +142,8 @@ assert _sheet_title == EXPECTED_SHEET_TITLE, (
 
 _headers = df_funcs_str.iloc[HEADER_ROW].to_list()
 assert _headers == EXPECTED_COL_NAMES, (
-    f"Column headers do not match expected strucuture:"
-    f"Expected: {EXPECTED_COL_NAMES}"
+    f"Column headers do not match expected strucuture:\n"
+    f"Expected: {EXPECTED_COL_NAMES}\n"
     f"Actual: {_headers}"
 )
 
@@ -202,8 +202,8 @@ assert len(new_names) == len(EXPECTED_COL_NAMES), (
     f"Mismatch: source has f{len(EXPECTED_COL_NAMES)} column headers but name reassignment list has {len(new_names)}"
 )
 
-col_names = dict(zip(EXPECTED_COL_NAMES))
-df_funcs = df_funcs.rebane(column=col_names)
+col_names = dict(zip(EXPECTED_COL_NAMES, new_names))
+df_funcs = df_funcs.rename(columns=col_names)
 
 # Unpivot
 df_funcs = df_funcs.melt(
@@ -219,7 +219,9 @@ df_funcs = df_funcs[~df_funcs["organisation_name"].str.endswith(" Overall")]
 delete = [
     "(excl. agencies)",
     "(incl. Office of the Advocate General for Scotland)",
-    "[Note 20]"
+    "[Note 20]",
+    "[Note 15]",
+    "[Note 16]"
 ]
 for k in delete:
     df_funcs["organisation_name"] = df_funcs["organisation_name"].str.replace(k, "", regex=False)
@@ -229,6 +231,22 @@ df_funcs["organisation_name"] = df_funcs["organisation_name"].str.replace(
 )
 
 df_funcs["organisation_name"] = df_funcs["organisation_name"].str.strip()
+
+# %%
+# Replace orgs with IfG names
+
+ifg_names = {
+    "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
+    "Wilton Park": "Wilton Park Executive Agency",
+    "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
+    "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
+    "UK Export Finance": "Export Credits Guarantee Department",
+    "Water Services Regulation Authority": "Ofwat"
+}
+
+df_funcs["organisation_name"] = df_funcs["organisation_name"].str.replace(ifg_names)
 
 # Add columns
 df_funcs.insert(0, "id", [uuid.uuid4() for i in range(len(df_funcs))])
@@ -249,7 +267,7 @@ df_orgs = pd.read_sql(
 )
 
 df_functions = pd.read_sql(
-    "SELECT id, function_name AS profession "
+    "SELECT id, function_name AS [function] "
     "FROM civil_service.functions_mapping",
     engine
 )
@@ -275,6 +293,7 @@ df_funcs.to_sql(
     schema="civil_service",
     index=False,
     chunksize=3000,
+    if_exists="append",
     dtype={
         "id": UNIQUEIDENTIFIER,
         "year": SMALLINT,
