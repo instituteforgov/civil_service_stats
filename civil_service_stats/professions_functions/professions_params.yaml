@@ -1,5 +1,5 @@
 - year: 2026
   source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
-  functions_sheet_name: table_8A
-  expected_functions_sheet_title: "Table 8A: Civil Service employment; profession by government department on a full-time equivalent (FTE) basis, as at 31 March 2026 [note 1] [note 9] [note 23] [note 24]"
+  professions_sheet_name: table_8A
+  expected_professions_sheet_title: "Table 8A: Civil Service employment; profession by government department on a full-time equivalent (FTE) basis, as at 31 March 2026 [note 1] [note 9] [note 23] [note 24]"
   na_values: ["[c]"]
