@@ -71,3 +71,7 @@ FROM cs_stats_professions
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
     LEFT JOIN profession_lookup ON
         cs_stats_professions.profession_id = profession_lookup.id
+ORDER BY
+    cs_stats_professions.year,
+    cs_stats_professions.organisation_name,
+    cs_stats_professions.profession
