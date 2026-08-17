@@ -283,7 +283,7 @@ ifg_names = {
     "Wilton Park": "Wilton Park Executive Agency",
     "Medicines and Healthcare Products Regulatory Agency": "Medicines and Healthcare products Regulatory Agency",
     "Ministry of Housing, Communities and Local Government": "Ministry of Housing, Communities & Local Government",
-    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",
+    "Office for Standards in Education, Children's Services and Skills": "Office for Standards in Education, Children’s Services and Skills",  # Special apostrophe character
     "Crown Office and Procurator Fiscal Service": "Crown Office and Procurator Fiscal",
     "UK Export Finance": "Export Credits Guarantee Department",
     "Water Services Regulation Authority": "Ofwat"
