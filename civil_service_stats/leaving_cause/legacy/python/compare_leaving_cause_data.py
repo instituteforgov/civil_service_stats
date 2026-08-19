@@ -65,3 +65,11 @@ df_sql["Latest organisation"] = df_sql.apply(
 key_cols = ["Year", "Quarter", "Organisation", "Leaving Cause", "Headcount"]
 
 compare_dataframes(df_excel, df_sql, key_cols)
+
+"""
+This returns mismatches in latest organisation etc. because the end dates of
+DFID, BEIS, PHE and DExEU in the orgs database come before the  release date of civil service statistics
+E.g. DFID closed in Q3 2020 but is still included in CS stats 2021
+This leads to the comparison SQL query returning NaNs, leading to mismatches when comparing
+Didn't have time to fix it :(
+"""
