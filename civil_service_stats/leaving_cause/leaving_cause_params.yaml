@@ -1,0 +1,5 @@
+- year: 2026
+  source_file: 2026/Statistical_tables_-_Civil_Service_Statistics_2026.ods
+  leaving_cause_sheet_name: table_32
+  expected_leaving_cause_sheet_title: "table 32: Civil Service leavers by government department and leaving cause, from 1 April2025 to 31 March 2026 [note 1] [note 14]"
+  na_values: ["[c]"]
