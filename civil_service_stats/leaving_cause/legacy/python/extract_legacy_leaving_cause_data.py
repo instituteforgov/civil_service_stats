@@ -97,4 +97,3 @@ df_causes.to_sql(
         "headcount": INT,
     }
 )
-
