@@ -30,8 +30,8 @@ SELECT
     cs_stats_leaving_cause.year [Year],
     cs_stats_leaving_cause.quarter [Quarter],
     cs_stats_leaving_cause.organisation_name [Organisation],
-    cs_stats_leaving_cause.leaving_cause [Leaving cause],
-    cs_stats_leaving_cause.headcount [Headcount]
+    cs_stats_leaving_cause.leaving_cause [Leaving Cause],
+    cs_stats_leaving_cause.headcount [Headcount],
     CASE o_vicd_vodg.type 
         WHEN 'Reporting total' THEN 'All employees'
         ELSE o_vicd_vodg.type
