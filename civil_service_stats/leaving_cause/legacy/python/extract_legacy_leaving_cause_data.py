@@ -93,9 +93,8 @@ df_causes.to_sql(
         "quarter": TINYINT,
         "organisation_id": UNIQUEIDENTIFIER,
         "organisation_name": NVARCHAR(100),
-        "leaving_cause": NVARCHAR(50),
+        "leaving_cause": NVARCHAR(100),
         "headcount": INT,
     }
 )
 
-# %%
