@@ -278,7 +278,7 @@ df_s_o.insert(
 )
 
 # %%
-# Write to db
+# Write to d/b
 
 df_s_o.to_sql(
     name="civil_service_statistics_sexual_orientation",

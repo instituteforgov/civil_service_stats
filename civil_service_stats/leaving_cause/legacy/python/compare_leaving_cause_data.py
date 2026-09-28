@@ -14,7 +14,7 @@ SHEET_NAME = "Collated.LeavingCause"
 SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/leaving_cause/legacy/compare_leaving_cause_organisations_data.sql"
 
 # %%
-# Connect to DB
+# Connect to d/b
 
 engine = engine = engine = dbo.connect_sql_db(
     driver="pyodbc",

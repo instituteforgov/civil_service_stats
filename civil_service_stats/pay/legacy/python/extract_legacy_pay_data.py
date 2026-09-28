@@ -82,7 +82,7 @@ df_pay.insert(
 )
 
 # %%
-# Write to DB
+# Write to d/b
 
 df_pay.to_sql(
     name="civil_service_statistics_pay",

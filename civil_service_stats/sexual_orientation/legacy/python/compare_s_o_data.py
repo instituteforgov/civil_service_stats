@@ -15,7 +15,7 @@ SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - Gener
 
 
 # %%
-# Connect to DB
+# Connect to d/b
 
 engine = engine = engine = dbo.connect_sql_db(
     driver="pyodbc",

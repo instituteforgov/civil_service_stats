@@ -1,13 +1,13 @@
 # %%
-
-import pandas as pd
-import ds_utils.database_operations as dbo
-import uuid
 import os
+import uuid
 
+import ds_utils.database_operations as dbo
+import pandas as pd
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from civil_service_stats.utils import resolve_org_id, resolve_function_id
+
+from civil_service_stats.utils import resolve_org_id, resolve_function_id, make_series_sentence_case
 
 # %%
 # Set constants
@@ -15,9 +15,12 @@ from civil_service_stats.utils import resolve_org_id, resolve_function_id
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Data.Collated_FunctionbyDept"
 
-# %%
-# Connect to D/B
+PRESERVE_CAPITALISATION_GROUPS = [
+    "Government Digital and Data"
+]
 
+# %%
+# Connect to d/b
 engine = dbo.connect_sql_db(
     driver="pyodbc",
     driver_version=os.environ["ODBC_DRIVER"],
@@ -31,7 +34,6 @@ engine = dbo.connect_sql_db(
 
 # %%
 # Read data
-
 df_funcs = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 
 # %%
@@ -60,7 +62,6 @@ df_funcs["organisation_name"] = df_funcs["organisation_name"].str.replace(r"\s*-
 
 # %%
 # Add org ID column
-
 df_orgs = pd.read_sql(
     """select
         o.id,
@@ -80,8 +81,8 @@ df_funcs.insert(
 )
 
 df_functions = pd.read_sql(
-    "SELECT id, function_name AS [function] "
-    "FROM civil_service.functions_mapping",
+    "select id, function_name as [function] "
+    "from civil_service.functions_mapping",
     con=engine
 )
 
@@ -91,9 +92,10 @@ df_funcs.insert(
     resolve_function_id(df_funcs, df_functions)
 )
 
-# %%
-# Write to DB
+df_funcs["function"] = make_series_sentence_case(df_funcs["function"], PRESERVE_CAPITALISATION_GROUPS)
 
+# %%
+# Write to d/b
 df_funcs.to_sql(
     name="civil_service_statistics_functions",
     con=engine,
@@ -111,3 +113,5 @@ df_funcs.to_sql(
         "headcount_fte": INT,
     }
 )
+
+# %%

@@ -1,10 +1,10 @@
 # %%
-
-import pandas as pd
 import os
-import ds_utils.database_operations as dbo
 
 from cs_data_utils.utils import compare_dataframes
+import ds_utils.database_operations as dbo
+import pandas as pd
+
 from civil_service_stats.utils import add_iteration_suffix
 
 # %%
@@ -14,8 +14,7 @@ SHEET_NAME = "Data.Collated_ProfessionbyDept"
 SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/professions_functions/legacy/compare_profs_organisations_data.sql"
 
 # %%
-# Connect to DB
-
+# Connect to d/b
 engine = engine = engine = dbo.connect_sql_db(
     driver="pyodbc",
     driver_version=os.environ["ODBC_DRIVER"],
@@ -29,7 +28,6 @@ engine = engine = engine = dbo.connect_sql_db(
 
 # %%
 # Read in SQL and Excel data
-
 df_excel = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_NAME)
 
 with open(SQL_PATH, encoding="utf-8") as f:
@@ -38,7 +36,6 @@ df_sql = pd.read_sql(sql, con=engine)
 
 # %%
 # Edit data
-
 df_excel = df_excel.drop(columns=[
     "Managed", "Census", "Ministerial department/executive agency/selected non-ministerial department"
 ])
@@ -61,7 +58,6 @@ df_sql["Latest organisation"] = df_sql.apply(
 
 # %%
 # Compare dataframes
-
 key_cols = ["Year", "Quarter", "Organisation", "Profession", "FTE", "Profession group", "Profession category", "Government classification"]
 
 compare_dataframes(df_excel, df_sql, key_cols)

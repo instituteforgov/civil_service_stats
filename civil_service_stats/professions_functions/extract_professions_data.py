@@ -27,31 +27,33 @@
 import logging
 import os
 from pathlib import Path
+import uuid
 
 import ds_utils.database_operations as dbo
 import pandas as pd
-import yaml
-import uuid
-
 from sqlalchemy import INT, NVARCHAR, SMALLINT, text
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from civil_service_stats.utils import resolve_org_id, resolve_profession_id
+import yaml
+
+from civil_service_stats.utils import resolve_org_id, resolve_profession_id, make_series_sentence_case
 
 # %%
 # Set parameters
-
-with open("professions_params.yaml") as f:
+with open("civil_service_stats/professions_functions/professions_params.yaml") as f:
     params = yaml.safe_load(f)[-1]
 
 # %%
 # Constants
-
 SOURCE_DIRECTORY = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Source"
 SOURCE_FILE = params["source_file"]
 SHEET_NAME = params["professions_sheet_name"]
 EXPECTED_SHEET_TITLE = params["expected_professions_sheet_title"]
 EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
+
+PRESERVE_CAPITALISATION_GROUPS = [
+    "Government Digital and Data"
+]
 
 # Table structure
 HEADER_ROW = 5
@@ -100,7 +102,6 @@ EXPECTED_COL_NAMES = [
 
 # %%
 # Set up logging
-
 _log_dir = Path(os.environ["LOCALAPPDATA"]) / "civil_service_stats" / "logs"
 _log_dir.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
@@ -115,7 +116,6 @@ logger = logging.getLogger(__name__)
 
 # %%
 # Connect to database
-
 engine = dbo.connect_sql_db(
     driver="pyodbc",
     driver_version=os.environ["ODBC_DRIVER"],
@@ -154,7 +154,6 @@ logger.info("Starting extraction: %s from '%s'", EXPECTED_YEAR, SOURCE_FILE)
 
 # %%
 # Check structure
-
 _sheet_title = str(df_profs_str.iloc[1, 0]).strip()
 assert _sheet_title == EXPECTED_SHEET_TITLE, (
     f"Unexpected sheet title: {_sheet_title}"
@@ -175,7 +174,6 @@ assert not unused_na_vals, f"Unused NA values - remove from params: {unused_na_v
 
 # %%
 # Check for exisiting records in database
-
 n = pd.read_sql(
     text(
         """select count(*)
@@ -195,7 +193,6 @@ logger.info("Passed structure and data quality tests")
 
 # %%
 # Clean and edit data
-
 new_names = [
     "parent_department",
     "organisation_name",
@@ -277,7 +274,6 @@ df_profs["organisation_name"] = df_profs["organisation_name"].str.strip()
 
 # %%
 # Replace org names with their IfG equivalents
-
 ifg_names = {
     "Advisory, Conciliation and Arbitration Service": "Advisory Conciliation and Arbitration Service",
     "Wilton Park": "Wilton Park Executive Agency",
@@ -328,9 +324,10 @@ df_profs.insert(
     resolve_profession_id(df_profs, df_professions)
 )
 
-# %%
-# Write to DB
+df_profs["profession"] = make_series_sentence_case(df_profs["profession"], PRESERVE_CAPITALISATION_GROUPS)
 
+# %%
+# Write to d/b
 df_profs.to_sql(
     name="civil_service_statistics_professions",
     con=engine,
@@ -348,3 +345,5 @@ df_profs.to_sql(
         "headcount_fte": INT,
     }
 )
+
+# %%

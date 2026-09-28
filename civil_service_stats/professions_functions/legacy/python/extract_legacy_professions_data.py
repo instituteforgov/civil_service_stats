@@ -1,23 +1,25 @@
 # %%
-
-import pandas as pd
-import ds_utils.database_operations as dbo
-import uuid
 import os
+import uuid
 
+import ds_utils.database_operations as dbo
+import pandas as pd
 from sqlalchemy import NVARCHAR, SMALLINT, INT
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER, TINYINT
-from civil_service_stats.utils import resolve_org_id, resolve_profession_id
+
+from civil_service_stats.utils import resolve_org_id, resolve_profession_id, make_series_sentence_case
 
 # %%
 # Set constants
-
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Data.Collated_ProfessionbyDept"
 
-# %%
-# Connect to D/B
+PRESERVE_CAPITALISATION_GROUPS = [
+    "Government Digital and Data"
+]
 
+# %%
+# Connect to d/b
 engine = dbo.connect_sql_db(
     driver="pyodbc",
     driver_version=os.environ["ODBC_DRIVER"],
@@ -31,7 +33,6 @@ engine = dbo.connect_sql_db(
 
 # %%
 # Read data
-
 df_profs = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 
 # %%
@@ -61,8 +62,7 @@ df_profs = df_profs.rename(columns={"organisation": "organisation_name", "fte": 
 df_profs["organisation_name"] = df_profs["organisation_name"].str.replace(r"\s*-\s*\d{4}\s*iteration\s*", "", regex=True)
 
 # %%
-# Insert org and profession IDs from DB
-
+# Insert org and profession IDs from d/b
 df_orgs = pd.read_sql(
     """select
         o.id,
@@ -82,8 +82,8 @@ df_profs.insert(
 )
 
 df_professions = pd.read_sql(
-    "SELECT id, profession_name AS profession "
-    "FROM civil_service.professions_mapping",
+    "select id, profession_name as profession "
+    "from civil_service.professions_mapping",
     engine)
 
 df_profs.insert(
@@ -92,9 +92,10 @@ df_profs.insert(
     resolve_profession_id(df_profs, df_professions)
 )
 
-# %%
-# Write to DB
+df_profs["profession"] = make_series_sentence_case(df_profs["profession"], PRESERVE_CAPITALISATION_GROUPS)
 
+# %%
+# Write to d/b
 df_profs.to_sql(
     name="civil_service_statistics_professions",
     con=engine,
@@ -113,3 +114,5 @@ df_profs.to_sql(
         "headcount_fte": INT,
     }
 )
+
+# %%

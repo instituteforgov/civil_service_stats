@@ -290,7 +290,7 @@ df_faith.insert(
 df_faith
 
 # %%
-# Write to db
+# Write to d/b
 
 df_faith.to_sql(
     name="civil_service_statistics_faith",

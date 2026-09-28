@@ -16,7 +16,7 @@ FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - Gene
 SHEET_NAME = "Collated.LeavingCause"
 
 # %%
-# Connect to D/B
+# Connect to d/b
 
 engine = dbo.connect_sql_db(
     driver="pyodbc",
