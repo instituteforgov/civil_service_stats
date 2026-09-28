@@ -8,9 +8,15 @@ import ds_utils.database_operations as dbo
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
 from sqlalchemy import NVARCHAR
 
+from civil_service_stats.utils import make_series_sentence_case
+
 # %%
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Ref_Profession classification"
+
+PRESERVE_CAPITALISATION_GROUPS = [
+    "Government Digital and Data"
+]
 
 # %%
 df_mapping = pd.read_excel(
@@ -34,6 +40,8 @@ engine = dbo.connect_sql_db(
 # %%
 df_mapping.columns = df_mapping.columns.str.replace("(IfG)", "").str.lower().str.strip().str.replace(" ", "_")
 
+df_mapping["profession_group"] = make_series_sentence_case(df_mapping["profession_group"], PRESERVE_CAPITALISATION_GROUPS)
+
 df_mapping.insert(0, 'id', [uuid.uuid4() for k in range(len(df_mapping))])
 
 # %%
@@ -51,3 +59,5 @@ df_mapping.to_sql(
         "government_classification": NVARCHAR(40)
     }
 )
+
+# %%

@@ -1,7 +1,4 @@
-# %%
 import pandas as pd
-
-# %%
 
 
 def resolve_org_id(
@@ -56,8 +53,6 @@ def resolve_org_id(
     result = merged[merged["_orig_idx"].isin(unique_idx)].set_index("_orig_idx")["id"]
     return result.reindex(df.index)
 
-# %%
-
 
 def add_iteration_suffix(row: pd.Series, col: str) -> str:
     """
@@ -89,8 +84,6 @@ def add_iteration_suffix(row: pd.Series, col: str) -> str:
     else:
         return row[col]
 
-# %%
-
 
 def resolve_profession_id(
     df: pd.DataFrame,
@@ -121,7 +114,22 @@ def resolve_profession_id(
     )
     return merged.set_index("_orig_idx")["id"].reindex(df.index)
 
-# %%
+
+def make_series_sentence_case(series: pd.Series, preserve: list[str]) -> pd.Series:
+    """Convert values in a Series to sentence case, leaving values in preserve unchanged.
+
+    Args:
+        series: Series of string values to convert.
+        preserve: Values to leave unchanged instead of converting to sentence case.
+
+    Returns:
+        Series with each value converted to sentence case, except values matching an entry in preserve.
+    """
+    def convert(value: str) -> str:
+        if pd.isna(value) or value in preserve:
+            return value
+        return value[:1].upper() + value[1:].lower()
+    return series.apply(convert)
 
 
 def resolve_function_id(
