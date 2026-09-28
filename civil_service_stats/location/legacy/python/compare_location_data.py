@@ -12,7 +12,7 @@ from IPython.display import display
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - location/Location working file.xlsx"
 SHEET_NAME = "Collated.Org x region"
 
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil Service/Civil Service Statistics/Scripts/civil_service_stats/location/sql/compare_location_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil Service/Civil Service Statistics/Scripts/civil_service_stats/location/legacy/compare_location_organisations_data.sql"
 
 engine = engine = dbo.connect_sql_db(
     driver="pyodbc",

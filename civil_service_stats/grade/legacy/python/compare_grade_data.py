@@ -22,7 +22,7 @@ from IPython.display import display
 # Set constants
 
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - Grade/Grade by department.xlsx"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/grade/sql/compare_grade_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/grade/legacy/compare_grade_organisations_data.sql"
 
 # %%
 # Connect to d/b

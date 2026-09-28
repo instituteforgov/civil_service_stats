@@ -11,7 +11,7 @@ from civil_service_stats.utils import add_iteration_suffix
 # Set filepaths
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - sex/Sex of civil servants.xlsx"
 SHEET_NAME = "Data.Collated"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/sex/legacy/compare_sex_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/sex/legacy/compare_sex_organisations_data.sql"
 
 
 # %%

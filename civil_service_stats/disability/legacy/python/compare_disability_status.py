@@ -11,7 +11,7 @@ from civil_service_stats.utils import add_iteration_suffix
 # Set filepaths
 EXCEL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service - diversity/Civil Service - disability status/Disability status of civil servants.xlsx"
 SHEET_NAME = "Data.Collated_DisabilitybyDept"
-SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/disability/legacy/compare_disability_organisations_data"
+SQL_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil Service Statistics/Scripts/civil_service_stats/disability/legacy/compare_disability_organisations_data.sql"
 
 
 # %%
