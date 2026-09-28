@@ -1,14 +1,14 @@
 # %%
-import pandas as pd
-import uuid
 import os
+import uuid
+
+import pandas as pd
 
 import ds_utils.database_operations as dbo
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
 from sqlalchemy import NVARCHAR
 
 # %%
-
 FILE_PATH = "C:/Users/" + os.getlogin() + "/INSTITUTE FOR GOVERNMENT/Data - General/Civil service/Civil service - professions and functions/Professions and functions of civil servants - with assumed DWP professions averages.xlsx"
 SHEET_NAME = "Ref_Profession classification"
 
@@ -32,13 +32,11 @@ engine = dbo.connect_sql_db(
 )
 
 # %%
-
 df_mapping.columns = df_mapping.columns.str.replace("(IfG)", "").str.lower().str.strip().str.replace(" ", "_")
 
 df_mapping.insert(0, 'id', [uuid.uuid4() for k in range(len(df_mapping))])
 
 # %%
-
 df_mapping.to_sql(
     name="professions_mapping",
     con=engine,
