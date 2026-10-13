@@ -1,14 +1,14 @@
 
-WITH cs_stats_functions AS (
-    SELECT *, year * 4 + 1 survey_period
-    FROM civil_service.civil_service_statistics_functions
+with cs_stats_functions as (
+    select *, year * 4 + 1 survey_period
+    from civil_service.civil_service_statistics_functions
 ),
-function_lookup AS (
-    SELECT id, function_name, function_group
-    FROM civil_service.functions_mapping
+function_lookup as (
+    select id, function_name, function_group
+    from civil_service.functions_mapping
 ),
-o_vicd_vodg AS (
-    SELECT
+o_vicd_vodg as (
+    select
         o.id,
         vodg.organisation_name,
         o.type,
@@ -20,16 +20,16 @@ o_vicd_vodg AS (
         vodg.start_quarter,
         vodg.end_year,
         vodg.end_quarter,
-        ISNULL(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
-        ISNULL(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
-    FROM civil_service.organisation o 
-        LEFT JOIN civil_service.vw_ifg_core_departments vicd ON
+        isnull(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
+        isnull(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
+    from civil_service.organisation o 
+        left join civil_service.vw_ifg_core_departments vicd on
             o.id = vicd.organisation_id
-        LEFT JOIN civil_service.vw_organisation_departmental_group vodg ON
+        left join civil_service.vw_organisation_departmental_group vodg on
             o.id = vodg.organisation_id
 )
 
-SELECT 
+select 
     cs_stats_functions.id,
     cs_stats_functions.year [Year],
     cs_stats_functions.quarter [Quarter],
@@ -37,39 +37,39 @@ SELECT
     cs_stats_functions.[function] [Function],
     cs_stats_functions.headcount_fte [FTE],
     function_lookup.function_group [Function group],
-    CASE o_vicd_vodg.type 
-        WHEN 'Reporting total' THEN 'All employees'
-        ELSE o_vicd_vodg.type
-    END [Organisation type],
-    CASE cs_stats_functions.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE o_vicd_vodg.ifg_departmental_group_short_name 
-    END [Departmental group],
-    CASE
-        WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
-        ELSE 'N'
-    END [IfG core department],
-    CASE cs_stats_functions.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        ELSE vol1.latest_organisation_name
-    END [Latest organisation],
-    CASE cs_stats_functions.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE vol2.latest_determinate_organisation_short_name
-    END [Latest departmental group]
-FROM cs_stats_functions   
-    LEFT JOIN o_vicd_vodg ON 
-        cs_stats_functions.organisation_id = o_vicd_vodg.id AND
-        cs_stats_functions.survey_period BETWEEN o_vicd_vodg.start_period AND o_vicd_vodg.end_period 
-    LEFT JOIN civil_service.vw_organisation_latest vol1 ON
+    case o_vicd_vodg.type 
+        when 'Reporting total' then 'All employees'
+        else o_vicd_vodg.type
+    end [Organisation type],
+    case cs_stats_functions.organisation_name
+        when 'All employees' then 'All employees'
+        when 'Security and Intelligence Services' then 'Security services'
+        else o_vicd_vodg.ifg_departmental_group_short_name 
+    end [Departmental group],
+    case
+        when o_vicd_vodg.is_ifg_core_department = 1 then 'Y'
+        else 'N'
+    end [IfG core department],
+    case cs_stats_functions.organisation_name
+        when 'All employees' then 'All employees'
+        else vol1.latest_organisation_name
+    end [Latest organisation],
+    case cs_stats_functions.organisation_name
+        when 'All employees' then 'All employees'
+        when 'Security and Intelligence Services' then 'Security services'
+        else vol2.latest_determinate_organisation_short_name
+    end [Latest departmental group]
+from cs_stats_functions   
+    left join o_vicd_vodg on 
+        cs_stats_functions.organisation_id = o_vicd_vodg.id and
+        cs_stats_functions.survey_period between o_vicd_vodg.start_period and o_vicd_vodg.end_period 
+    left join civil_service.vw_organisation_latest vol1 on
         o_vicd_vodg.id = vol1.organisation_id 
-    LEFT JOIN civil_service.vw_organisation_latest vol2 ON
+    left join civil_service.vw_organisation_latest vol2 on
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
-    LEFT JOIN function_lookup ON
+    left join function_lookup on
         cs_stats_functions.function_id = function_lookup.id
-ORDER BY 
+order by 
     cs_stats_functions.year,
     cs_stats_functions.organisation_name,
     cs_stats_functions.[function]

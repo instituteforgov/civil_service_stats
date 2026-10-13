@@ -1,11 +1,11 @@
-WITH cs_stats_s_o AS (
-    SELECT 
+with cs_stats_s_o as (
+    select 
         *, 
         year * 4 + 1 survey_period
-    FROM civil_service.civil_service_statistics_sexual_orientation
+    from civil_service.civil_service_statistics_sexual_orientation
 ), 
-o_vicd_vodg AS (
-    SELECT
+o_vicd_vodg as (
+    select
         o.id,
         vodg.organisation_name,
         o.type,
@@ -17,52 +17,52 @@ o_vicd_vodg AS (
         vodg.start_quarter,
         vodg.end_year,
         vodg.end_quarter,
-        ISNULL(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
-        ISNULL(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
-    FROM civil_service.organisation o 
-        LEFT JOIN civil_service.vw_ifg_core_departments vicd ON
+        isnull(vodg.start_year * 4 + vodg.start_quarter, 0) start_period,
+        isnull(vodg.end_year * 4 + vodg.end_quarter, 2147483647) end_period
+    from civil_service.organisation o 
+        left join civil_service.vw_ifg_core_departments vicd on
             o.id = vicd.organisation_id
-        LEFT JOIN civil_service.vw_organisation_departmental_group vodg ON
+        left join civil_service.vw_organisation_departmental_group vodg on
             o.id = vodg.organisation_id
 )
 
-SELECT 
+select 
     cs_stats_s_o.id,
     cs_stats_s_o.quarter [Quarter],
     cs_stats_s_o.year [Year],
     cs_stats_s_o.organisation_name [Organisation],
     cs_stats_s_o.sexual_orientation [Sexual orientation],
     cs_stats_s_o.headcount [Headcount],
-    CASE o_vicd_vodg.type 
-        WHEN 'Reporting total' THEN 'All employees'
-        ELSE o_vicd_vodg.type
-    END [Organisation type],
-    CASE cs_stats_s_o.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE o_vicd_vodg.ifg_departmental_group_short_name 
-    END [Departmental group],
-    CASE 
-        WHEN o_vicd_vodg.is_ifg_core_department = 1 THEN 'Y'
-        ELSE 'N'
-    END [Ifg core department],
-    CASE cs_stats_s_o.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        ELSE vol1.latest_organisation_name
-    END [Latest organisation],
-    CASE cs_stats_s_o.organisation_name
-        WHEN 'All employees' THEN 'All employees'
-        WHEN 'Security and Intelligence Services' THEN 'Security services'
-        ELSE vol2.latest_organisation_short_name
-    END [Latest departmental group]
-FROM cs_stats_s_o    
-    LEFT JOIN o_vicd_vodg ON 
-        cs_stats_s_o.organisation_id = o_vicd_vodg.id AND
-        cs_stats_s_o.survey_period BETWEEN o_vicd_vodg.start_period AND o_vicd_vodg.end_period 
-    LEFT JOIN civil_service.vw_organisation_latest vol1 ON
+    case o_vicd_vodg.type 
+        when 'Reporting total' then 'All employees'
+        else o_vicd_vodg.type
+    end [Organisation type],
+    case cs_stats_s_o.organisation_name
+        when 'All employees' then 'All employees'
+        when 'Security and Intelligence Services' then 'Security services'
+        else o_vicd_vodg.ifg_departmental_group_short_name 
+    end [Departmental group],
+    case 
+        when o_vicd_vodg.is_ifg_core_department = 1 then 'Y'
+        else 'N'
+    end [Ifg core department],
+    case cs_stats_s_o.organisation_name
+        when 'All employees' then 'All employees'
+        else vol1.latest_organisation_name
+    end [Latest organisation],
+    case cs_stats_s_o.organisation_name
+        when 'All employees' then 'All employees'
+        when 'Security and Intelligence Services' then 'Security services'
+        else vol2.latest_organisation_short_name
+    end [Latest departmental group]
+from cs_stats_s_o    
+    left join o_vicd_vodg on 
+        cs_stats_s_o.organisation_id = o_vicd_vodg.id and
+        cs_stats_s_o.survey_period between o_vicd_vodg.start_period and o_vicd_vodg.end_period 
+    left join civil_service.vw_organisation_latest vol1 on
         o_vicd_vodg.id = vol1.organisation_id 
-    LEFT JOIN civil_service.vw_organisation_latest vol2 ON
+    left join civil_service.vw_organisation_latest vol2 on
         o_vicd_vodg.ifg_departmental_group_id = vol2.organisation_id
-ORDER BY 
+order by 
     cs_stats_s_o.year,
     cs_stats_s_o.organisation_name
