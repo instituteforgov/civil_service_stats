@@ -3,3 +3,5 @@
   pay_sheet_name: table_25
   expected_pay_sheet_title: "Table 25: Civil Service employment; median salary by responsibility level and government department, as at 31 March 2026 [note 1] [note 2] [note 3] [note 6]"
   na_values: ["[c]", "[n]"]
+  grade_replacements:
+    "Unreported": "Not reported"

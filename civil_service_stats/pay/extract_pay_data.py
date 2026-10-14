@@ -52,6 +52,7 @@ EXPECTED_SHEET_TITLE = params["expected_pay_sheet_title"]
 EXPECTED_YEAR = params["year"]
 NA_VALS = params["na_values"]
 
+# Table layout
 HEADER_ROW = 6
 FIRST_DATA_ROW = 7
 EXPECTED_COL_NAMES = [
@@ -65,6 +66,9 @@ EXPECTED_COL_NAMES = [
     "Median salary of all civil servants with an unreported grade",
     "Median salary of all civil servants"
 ]
+
+# Data cleaning
+GRADE_REPLACEMENTS = params["grade_replacements"]
 
 # %%
 # Initialise logger
@@ -204,6 +208,17 @@ df_pay["organisation_name"] = df_pay["organisation_name"].str.replace(
 )
 
 df_pay["organisation_name"] = df_pay["organisation_name"].str.strip()
+
+# %%
+# Check all replacement keys and remove strings are present in the data
+_grades = df_pay["grade"].tolist()
+_missing_replacements = [k for k in GRADE_REPLACEMENTS if not any(k in name for name in _grades)]
+assert not _missing_replacements, f"GRADE_REPLACEMENTS keys not found in any grade name: {_missing_replacements}"
+
+# %%
+# Clean grades
+for remove_str in GRADE_REPLACEMENTS:
+    df_pay["grade"] = df_pay["grade"].str.replace(remove_str, "", regex=False).str.strip()
 
 # %%
 # Replace orgs with IfG names
